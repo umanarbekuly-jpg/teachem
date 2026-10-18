@@ -1,0 +1,359 @@
+generator client {
+  provider = "prisma-client-js"
+}
+datasource db {
+  provider = "postgresql"
+  url = env("DATABASE_URL")
+}
+enum Role {
+  student
+  tutor
+  admin
+}
+enum CourseStatus {
+  draft
+  published
+  archived
+}
+enum PaymentStatus {
+  pending
+  awaiting_review
+  approved
+  rejected
+}
+enum PayoutStatus {
+  pending
+  paid
+}
+enum FilePurpose {
+  avatar
+  material
+  receipt
+}
+enum FileStatus {
+  pending
+  ready
+  rejected
+}
+enum MaterialKind {
+  file
+  link
+}
+enum TestStatus {
+  draft
+  published
+  archived
+}
+enum QuestionType {
+  single
+  multiple
+}
+enum AttemptStatus {
+  in_progress
+  submitted
+}
+enum SessionStatus {
+  scheduled
+  cancelled
+}
+model User {
+  id String @id @default(uuid()) @db.Uuid
+  email String @unique
+  passwordHash String
+  name String
+  role Role
+  blockedAt DateTime? @db.Timestamptz(3)
+  deletedAt DateTime? @db.Timestamptz(3)
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+  authSessions AuthSession[]
+  profile TutorProfile?
+  courses Course[]
+  assets FileAsset[]
+  enrollments Enrollment[]
+  payouts Payout[] @relation("TutorPayout")
+  paidPayouts Payout[] @relation("PaidBy")
+  reviewedPayments Payment[]
+  paymentHistory PaymentStatusHistory[]
+  attempts TestAttempt[]
+  settings PlatformSetting[]
+  auditLogs AuditLog[]
+  @@index([role, blockedAt])
+}
+model AuthSession {
+  id String @id @default(uuid()) @db.Uuid
+  userId String @db.Uuid
+  user User @relation(fields: [userId], references: [id])
+  refreshTokenHash String
+  expiresAt DateTime @db.Timestamptz(3)
+  revokedAt DateTime? @db.Timestamptz(3)
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+  @@index([userId])
+  @@index([expiresAt])
+}
+model TutorProfile {
+  id String @id @default(uuid()) @db.Uuid
+  userId String @unique @db.Uuid
+  user User @relation(fields: [userId], references: [id])
+  photoAssetId String? @unique @db.Uuid
+  photo FileAsset? @relation(fields: [photoAssetId], references: [id])
+  bio String @default("")
+  experienceYears Int @default(0)
+  education String @default("")
+  subjects String[]
+  languages String[]
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+}
+model Course {
+  id String @id @default(uuid()) @db.Uuid
+  tutorId String @db.Uuid
+  tutor User @relation(fields: [tutorId], references: [id])
+  title String
+  description String
+  subject String
+  level String
+  monthlyPriceMinor Int
+  currency String @default("KZT") @db.Char(3)
+  status CourseStatus @default(draft)
+  deletedAt DateTime? @db.Timestamptz(3)
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+  materials Material[]
+  enrollments Enrollment[]
+  tests Test[]
+  sessions LiveSession[]
+  @@index([tutorId])
+  @@index([status, subject, monthlyPriceMinor])
+}
+model FileAsset {
+  id String @id @default(uuid()) @db.Uuid
+  ownerId String @db.Uuid
+  owner User @relation(fields: [ownerId], references: [id])
+  purpose FilePurpose
+  objectKey String @unique
+  originalName String
+  mimeType String
+  sizeBytes Int
+  status FileStatus @default(pending)
+  expiresAt DateTime? @db.Timestamptz(3)
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+  photoFor TutorProfile?
+  materials Material[]
+  receipts Payment[]
+  @@index([ownerId])
+}
+model Material {
+  id String @id @default(uuid()) @db.Uuid
+  courseId String @db.Uuid
+  course Course @relation(fields: [courseId], references: [id])
+  title String
+  kind MaterialKind
+  fileAssetId String? @db.Uuid
+  file FileAsset? @relation(fields: [fileAssetId], references: [id])
+  url String?
+  position Int @default(0)
+  deletedAt DateTime? @db.Timestamptz(3)
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+  @@index([courseId])
+  @@index([fileAssetId])
+}
+model Enrollment {
+  id String @id @default(uuid()) @db.Uuid
+  studentId String @db.Uuid
+  student User @relation(fields: [studentId], references: [id])
+  courseId String @db.Uuid
+  course Course @relation(fields: [courseId], references: [id])
+  accessStartsAt DateTime? @db.Timestamptz(3)
+  accessExpiresAt DateTime? @db.Timestamptz(3)
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+  payments Payment[]
+  @@unique([studentId, courseId])
+  @@index([courseId])
+  @@index([accessExpiresAt])
+}
+model Payment {
+  id String @id @default(uuid()) @db.Uuid
+  enrollmentId String @db.Uuid
+  enrollment Enrollment @relation(fields: [enrollmentId], references: [id])
+  amountMinor Int
+  currency String @default("KZT") @db.Char(3)
+  commissionBps Int
+  provider String @default("manual")
+  status PaymentStatus @default(pending)
+  receiptAssetId String? @db.Uuid
+  receipt FileAsset? @relation(fields: [receiptAssetId], references: [id])
+  submittedAt DateTime? @db.Timestamptz(3)
+  reviewedAt DateTime? @db.Timestamptz(3)
+  reviewerId String? @db.Uuid
+  reviewer User? @relation(fields: [reviewerId], references: [id])
+  reviewReason String?
+  idempotencyKey String @unique
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+  history PaymentStatusHistory[]
+  payout Payout?
+  @@index([enrollmentId])
+  @@index([receiptAssetId])
+  @@index([reviewerId])
+  @@index([status, createdAt])
+}
+model PaymentStatusHistory {
+  id String @id @default(uuid()) @db.Uuid
+  paymentId String @db.Uuid
+  payment Payment @relation(fields: [paymentId], references: [id])
+  fromStatus PaymentStatus?
+  toStatus PaymentStatus
+  actorId String @db.Uuid
+  actor User @relation(fields: [actorId], references: [id])
+  reason String?
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+  @@index([paymentId, createdAt])
+  @@index([actorId])
+}
+model Payout {
+  id String @id @default(uuid()) @db.Uuid
+  paymentId String @unique @db.Uuid
+  payment Payment @relation(fields: [paymentId], references: [id])
+  tutorId String @db.Uuid
+  tutor User @relation("TutorPayout", fields: [tutorId], references: [id])
+  grossMinor Int
+  commissionMinor Int
+  netMinor Int
+  currency String @default("KZT") @db.Char(3)
+  status PayoutStatus @default(pending)
+  paidAt DateTime? @db.Timestamptz(3)
+  paidById String? @db.Uuid
+  paidBy User? @relation("PaidBy", fields: [paidById], references: [id])
+  reference String?
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+  @@index([tutorId, status])
+  @@index([paidById])
+  @@index([status, createdAt])
+}
+model Test {
+  id String @id @default(uuid()) @db.Uuid
+  courseId String @db.Uuid
+  course Course @relation(fields: [courseId], references: [id])
+  title String
+  status TestStatus @default(draft)
+  deletedAt DateTime? @db.Timestamptz(3)
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+  questions Question[]
+  attempts TestAttempt[]
+  @@index([courseId])
+}
+model Question {
+  id String @id @default(uuid()) @db.Uuid
+  testId String @db.Uuid
+  test Test @relation(fields: [testId], references: [id])
+  text String
+  type QuestionType
+  points Int
+  position Int
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+  options AnswerOption[]
+  answers AttemptAnswer[]
+  @@index([testId])
+}
+model AnswerOption {
+  id String @id @default(uuid()) @db.Uuid
+  questionId String @db.Uuid
+  question Question @relation(fields: [questionId], references: [id])
+  text String
+  isCorrect Boolean
+  position Int
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+  selected AttemptAnswerOption[]
+  @@index([questionId])
+}
+model TestAttempt {
+  id String @id @default(uuid()) @db.Uuid
+  testId String @db.Uuid
+  test Test @relation(fields: [testId], references: [id])
+  studentId String @db.Uuid
+  student User @relation(fields: [studentId], references: [id])
+  status AttemptStatus @default(in_progress)
+  startedAt DateTime @default(now()) @db.Timestamptz(3)
+  submittedAt DateTime? @db.Timestamptz(3)
+  score Int?
+  maxScore Int
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+  answers AttemptAnswer[]
+  @@index([testId])
+  @@index([studentId])
+}
+model AttemptAnswer {
+  id String @id @default(uuid()) @db.Uuid
+  attemptId String @db.Uuid
+  attempt TestAttempt @relation(fields: [attemptId], references: [id])
+  questionId String @db.Uuid
+  question Question @relation(fields: [questionId], references: [id])
+  awardedPoints Int @default(0)
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+  selected AttemptAnswerOption[]
+  @@unique([attemptId, questionId])
+  @@index([questionId])
+}
+model AttemptAnswerOption {
+  id String @id @default(uuid()) @db.Uuid
+  attemptAnswerId String @db.Uuid
+  answer AttemptAnswer @relation(fields: [attemptAnswerId], references: [id], onDelete: Cascade)
+  answerOptionId String @db.Uuid
+  option AnswerOption @relation(fields: [answerOptionId], references: [id])
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+  @@unique([attemptAnswerId, answerOptionId])
+  @@index([answerOptionId])
+}
+model LiveSession {
+  id String @id @default(uuid()) @db.Uuid
+  courseId String @db.Uuid
+  course Course @relation(fields: [courseId], references: [id])
+  topic String
+  startsAt DateTime @db.Timestamptz(3)
+  durationMinutes Int
+  provider String @default("manual")
+  joinUrl String
+  status SessionStatus @default(scheduled)
+  deletedAt DateTime? @db.Timestamptz(3)
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+  @@index([courseId])
+  @@index([startsAt])
+}
+model PlatformSetting {
+  id String @id @default(uuid()) @db.Uuid
+  key String @unique
+  value Json
+  updatedById String? @db.Uuid
+  updatedBy User? @relation(fields: [updatedById], references: [id])
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+  @@index([updatedById])
+}
+model AuditLog {
+  id String @id @default(uuid()) @db.Uuid
+  actorId String @db.Uuid
+  actor User @relation(fields: [actorId], references: [id])
+  action String
+  entityType String
+  entityId String?
+  requestId String
+  metadata Json
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+  @@index([actorId])
+  @@index([createdAt])
+}

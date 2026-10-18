@@ -1,0 +1,94 @@
+name: tutor-platform
+x-api-env: &api-env
+  NODE_ENV: development
+  PORT: 4000
+  DATABASE_URL: postgresql://tutor:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@postgres:5432/tutor?schema=public
+  JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:?Set JWT_ACCESS_SECRET}
+  JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:?Set JWT_REFRESH_SECRET}
+  PUBLIC_ORIGIN: ${PUBLIC_ORIGIN:-http://localhost:8080}
+  CORS_ORIGINS: ${PUBLIC_ORIGIN:-http://localhost:8080}
+  COOKIE_SECURE: 'false'
+  S3_ENDPOINT: http://minio:9000
+  S3_PUBLIC_ENDPOINT: http://localhost:9000
+  S3_REGION: us-east-1
+  S3_BUCKET: tutor-private
+  S3_ACCESS_KEY: ${MINIO_ROOT_USER:?Set MINIO_ROOT_USER}
+  S3_SECRET_KEY: ${MINIO_ROOT_PASSWORD:?Set MINIO_ROOT_PASSWORD}
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: tutor
+      POSTGRES_USER: tutor
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports: ['127.0.0.1:5432:5432']
+    volumes: ['postgres-data:/var/lib/postgresql/data']
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U tutor -d tutor']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+  minio:
+    build: { context: ., dockerfile: infra/minio/Dockerfile }
+    command: server /data --console-address ':9001'
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      MINIO_API_CORS_ALLOW_ORIGIN: ${PUBLIC_ORIGIN:-http://localhost:8080}
+    ports: ['127.0.0.1:9000:9000', '127.0.0.1:9001:9001']
+    volumes: ['minio-data:/data']
+  storage-init:
+    build: { context: ., dockerfile: infra/minio/Dockerfile.mc }
+    depends_on: [minio]
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    entrypoint: /bin/sh
+    command:
+      - -c
+      - |
+        until mc alias set local http://minio:9000 "$${MINIO_ROOT_USER}" "$${MINIO_ROOT_PASSWORD}"; do sleep 2; done
+        mc mb --ignore-existing local/tutor-private
+        mc anonymous set none local/tutor-private
+        mc ilm rule add --id pending-cleanup --prefix pending/ --expire-days 1 local/tutor-private || true
+  migrate:
+    build: { context: ., dockerfile: apps/api/Dockerfile }
+    environment: *api-env
+    command: pnpm --filter @tutor/api db:migrate
+    depends_on:
+      postgres: { condition: service_healthy }
+  seed:
+    build: { context: ., dockerfile: apps/api/Dockerfile }
+    environment:
+      <<: *api-env
+      ADMIN_EMAIL: ${ADMIN_EMAIL:?Set ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Set ADMIN_PASSWORD}
+    command: pnpm --filter @tutor/api db:seed
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+  api:
+    build: { context: ., dockerfile: apps/api/Dockerfile }
+    environment: *api-env
+    depends_on:
+      seed: { condition: service_completed_successfully }
+      storage-init: { condition: service_completed_successfully }
+    healthcheck:
+      test: ['CMD', 'node', '-e', "fetch('http://localhost:4000/health/ready').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+  web:
+    build: { context: ., dockerfile: apps/web/Dockerfile }
+    environment:
+      API_INTERNAL_URL: http://api:4000/api/v1
+      NEXT_PUBLIC_API_URL: /api/v1
+    depends_on:
+      api: { condition: service_healthy }
+  gateway:
+    image: nginx:1.28-alpine
+    ports: ['8080:80']
+    volumes: ['./infra/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro']
+    depends_on: [api, web]
+volumes:
+  postgres-data:
+  minio-data:

@@ -1,0 +1,6 @@
+{
+  "name":"@tutor/web","version":"0.1.0","private":true,
+  "scripts":{"dev":"next dev --hostname 0.0.0.0","build":"next build","start":"next start --hostname 0.0.0.0","typecheck":"tsc --noEmit","api:generate":"openapi-typescript ../api/openapi.json -o lib/api-client/schema.ts"},
+  "dependencies":{"next":"^16.0.0","react":"^19.2.0","react-dom":"^19.2.0","@tutor/shared":"workspace:*","@tanstack/react-query":"^5.90.0","@hookform/resolvers":"^5.2.2","react-hook-form":"^7.63.0","zod":"^4.1.11","openapi-fetch":"^0.14.0","lucide-react":"^0.544.0","clsx":"^2.1.1","tailwind-merge":"^3.3.1","class-variance-authority":"^0.7.1","@radix-ui/react-slot":"^1.2.3"},
+  "devDependencies":{"typescript":"~5.9.2","@types/node":"^22.18.6","@types/react":"^19.1.16","@types/react-dom":"^19.1.9","tailwindcss":"^4.1.13","@tailwindcss/postcss":"^4.1.13","openapi-typescript":"^7.9.1"}
+}
