@@ -1,4 +1,5 @@
 "use client";
+import { BRAND } from "@tutor/shared";
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -60,7 +61,7 @@ export function AuthForm({
       <aside className="auth-story">
         <Logo />
         <div>
-          <span className="eyebrow">У КАЖДОГО ЕСТЬ ТОЧКА РОСТА</span>
+          <span className="eyebrow">{BRAND.tagline}</span>
           <h1>
             Ваш следующий
             <br />

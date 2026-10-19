@@ -1,3 +1,4 @@
+import { BRAND } from "@tutor/shared";
 import "reflect-metadata";
 import {
   INestApplication,
@@ -64,7 +65,7 @@ export function document(app: INestApplication) {
     SwaggerModule.createDocument(
       app,
       new DocumentBuilder()
-        .setTitle("Точка роста — API")
+        .setTitle(`${BRAND.name} — API`)
         .setDescription(
           "Платформа тьюторов. Cookie JWT + CSRF для изменяющих запросов. Все суммы — в тиынах.",
         )

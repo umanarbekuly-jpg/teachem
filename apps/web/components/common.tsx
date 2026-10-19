@@ -1,9 +1,11 @@
 "use client";
 import Link from "next/link";
+import { BRAND } from "@tutor/shared";
+import { Logo } from "./brand/logo";
+export { Logo } from "./brand/logo";
 import {
   ArrowUpRight,
   BookOpen,
-  GraduationCap,
   LoaderCircle,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -12,16 +14,6 @@ import { Button } from "./ui/button";
 import { money, statusLabel } from "@/lib/utils";
 import type { components } from "@/lib/api-client/schema";
 export type Course = components["schemas"]["CourseView"];
-export function Logo() {
-  return (
-    <Link href="/" className="logo">
-      <span className="logo-icon">
-        <GraduationCap size={24} />
-      </span>
-      точка роста<span className="logo-dot">.</span>
-    </Link>
-  );
-}
 export function Header() {
   const me = useQuery({
     queryKey: ["me"],
@@ -50,7 +42,7 @@ export function Footer() {
   return (
     <footer className="footer container">
       <Logo />
-      <p>Учиться сегодня. Расти каждый день.</p>
+      <p>{BRAND.tagline}</p>
       <span>Платформа для учеников и тьюторов</span>
     </footer>
   );

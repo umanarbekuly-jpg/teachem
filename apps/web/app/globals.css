@@ -5,11 +5,6 @@
   }
 }
 :root {
-  --ink: #182c36;
-  --muted: #637780;
-  --blue: #225ad5;
-  --line: #e2e9eb;
-  --bg: #f8faf9;
   --font-sans: Arial, Helvetica, sans-serif;
 }
 * {
@@ -95,13 +90,9 @@ h3 {
   place-items: center;
   width: 38px;
   height: 38px;
-  background: var(--blue);
-  color: #fff;
+  background: var(--brand-logo);
+  color: var(--brand-logo-foreground);
   border-radius: 12px;
-}
-.logo-dot {
-  color: var(--blue);
-  margin-left: -9px;
 }
 .header nav {
   display: flex;
@@ -123,11 +114,11 @@ h3 {
   white-space: nowrap;
 }
 .btn-primary {
-  background: var(--blue);
+  background: var(--primary);
   color: #fff;
 }
 .btn-primary:hover {
-  background: #174ab6;
+  background: var(--primary-hover);
 }
 .btn-outline {
   background: #fff;
@@ -156,7 +147,7 @@ h3 {
   margin: 23px 0;
 }
 .hero h1 > span {
-  color: var(--blue);
+  color: var(--primary);
 }
 .hero-copy > p {
   font-size: 17px;
@@ -264,13 +255,13 @@ h3 {
 }
 .stairs i:nth-child(4) {
   height: 110px;
-  background: #225ad5;
+  background: var(--primary);
 }
 .stairs > span {
   position: absolute;
   right: 25px;
   top: -15px;
-  color: #225ad5;
+  color: var(--primary);
   transform: rotate(9deg);
 }
 .learning-card h3 {
@@ -392,7 +383,7 @@ h3 {
   border-radius: 13px;
 }
 .feature > svg {
-  color: var(--blue);
+  color: var(--primary);
   margin-bottom: 22px;
 }
 .feature h3 {
@@ -618,7 +609,7 @@ h3 {
 }
 .course-price > a {
   background: #eff3fa;
-  color: var(--blue);
+  color: var(--primary);
   border-radius: 50%;
   padding: 8px;
 }
@@ -743,7 +734,7 @@ h3 {
 }
 .role-selector .selected {
   background: #e9effc;
-  color: var(--blue);
+  color: var(--primary);
   font-weight: 600;
 }
 .auth-switch {
@@ -752,7 +743,7 @@ h3 {
   font-size: 13px;
 }
 .auth-switch a {
-  color: var(--blue);
+  color: var(--primary);
   font-weight: 600;
 }
 .dashboard {
@@ -787,7 +778,7 @@ h3 {
 }
 .sidebar nav a.active {
   background: #eaf0fc;
-  color: #235bd3;
+  color: var(--primary);
   font-weight: 600;
 }
 .sidebar-user {
@@ -882,8 +873,8 @@ h3 {
   color: var(--muted);
 }
 .tabs button.active {
-  border-color: var(--blue);
-  color: var(--blue);
+  border-color: var(--primary);
+  color: var(--primary);
   font-weight: 600;
 }
 .data-list {

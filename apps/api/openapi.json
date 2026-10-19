@@ -4049,7 +4049,7 @@
     }
   },
   "info": {
-    "title": "Точка роста — API",
+    "title": "TeachEm — API",
     "description": "Платформа тьюторов. Cookie JWT + CSRF для изменяющих запросов. Все суммы — в тиынах.",
     "version": "1.0",
     "contact": {}
