@@ -8,5 +8,10 @@ export function proxy(request: NextRequest) {
   return NextResponse.next();
 }
 export const config = {
-  matcher: ["/student/:path*", "/tutor/:path*", "/admin/:path*"],
+  matcher: [
+    "/student/:path*",
+    "/tutor/:path*",
+    "/admin/:path*",
+    "/change-password",
+  ],
 };

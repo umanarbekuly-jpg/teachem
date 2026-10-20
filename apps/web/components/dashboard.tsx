@@ -1,4 +1,5 @@
 "use client";
+import { accountPath } from "@/lib/account";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -81,7 +82,8 @@ export function Dashboard({
   const [logoutError, setLogoutError] = useState<unknown>();
   const current = section[0] ?? (role === "admin" ? "payments" : "courses");
   useEffect(() => {
-    if (me.data && me.data.role !== role) router.replace(`/${me.data.role}`);
+    if (me.data && accountPath(me.data) !== `/${role}`)
+      router.replace(accountPath(me.data));
   }, [me.data, role, router]);
   if (me.isLoading) return <Loading />;
   if (me.error)
@@ -93,7 +95,7 @@ export function Dashboard({
         </Button>
       </div>
     );
-  if (!me.data || me.data.role !== role) return <Loading />;
+  if (!me.data || accountPath(me.data) !== `/${role}`) return <Loading />;
   const user = me.data;
   let content: React.ReactNode;
   if (role === "admin") content = <AdminPanel section={current} />;
@@ -142,6 +144,7 @@ export function Dashboard({
         <header className="workspace-header">
           <span>Личный кабинет · {statusLabel[role]}</span>
           <div className="actions">
+            <Link href="/change-password">Сменить пароль</Link>
             <Link href="/catalog">Каталог ↗</Link>
             <button
               aria-label="Выйти"

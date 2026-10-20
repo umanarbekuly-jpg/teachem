@@ -1,4 +1,5 @@
 "use client";
+import { UserManagement } from "./user-management";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api, result, downloadFile, uploadFile } from "@/lib/api-client";
@@ -102,7 +103,7 @@ export function ProfilePanel() {
 }
 export function AdminPanel({ section }: { section: string }) {
   if (section === "settings") return <Settings />;
-  if (section === "users") return <Users />;
+  if (section === "users") return <UserManagement />;
   if (section === "payouts") return <Payouts />;
   if (section === "audit") return <Audit />;
   return <Payments />;
@@ -283,67 +284,6 @@ function Payments() {
                 />
               </div>
             )}
-          </div>
-        ))}
-      </div>
-      <Pagination page={page} total={q.data?.total ?? 0} onChange={setPage} />
-    </>
-  );
-}
-function Users() {
-  const [page, setPage] = useState(1);
-  const cache = useQueryClient();
-  const q = useQuery({
-    queryKey: ["admin-users", page],
-    queryFn: () =>
-      result(api.GET("/api/v1/admin/users", { params: { query: { page } } })),
-  });
-  const mutation = useMutation({
-    mutationFn: ({ id, blocked }: { id: string; blocked: boolean }) =>
-      blocked
-        ? result(
-            api.POST("/api/v1/admin/users/{id}/unblock", {
-              params: { path: { id } },
-            }),
-          )
-        : result(
-            api.POST("/api/v1/admin/users/{id}/block", {
-              params: { path: { id } },
-            }),
-          ),
-    onSuccess: () => cache.invalidateQueries({ queryKey: ["admin-users"] }),
-  });
-  return (
-    <>
-      <h1>Пользователи</h1>
-      <p className="subheading">
-        Блокировка завершает все активные сессии пользователя.
-      </p>
-      <ErrorBox error={q.error || mutation.error} />
-      {q.isLoading && <Loading />}
-      <div className="panel">
-        {q.data?.items.map((u) => (
-          <div className="data-row row" key={u.id}>
-            <div>
-              <strong>{u.name}</strong>
-              <p className="muted small">
-                {u.email} · {statusLabel[u.role]}
-              </p>
-            </div>
-            <div className="actions">
-              {u.blockedAt && <Badge status="Заблокирован" />}
-              {u.role !== "admin" && (
-                <Button
-                  variant="outline"
-                  disabled={mutation.isPending}
-                  onClick={() =>
-                    mutation.mutate({ id: u.id, blocked: !!u.blockedAt })
-                  }
-                >
-                  {u.blockedAt ? "Разблокировать" : "Заблокировать"}
-                </Button>
-              )}
-            </div>
           </div>
         ))}
       </div>

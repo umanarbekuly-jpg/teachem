@@ -1,4 +1,5 @@
 "use client";
+import { accountPath } from "@/lib/account";
 import { BRAND } from "@tutor/shared";
 import { useState } from "react";
 import Link from "next/link";
@@ -10,14 +11,22 @@ import { useQueryClient } from "@tanstack/react-query";
 import { api, result } from "@/lib/api-client";
 import { Button } from "./ui/button";
 import { ErrorBox, Logo } from "./common";
-const schema = z.object({
-  email: z.email("Укажите email"),
-  password: z
-    .string()
-    .min(12, "Не менее 12 символов")
-    .max(72, "Не более 72 символов"),
-  name: z.string().optional(),
-});
+const makeSchema = (registerMode: boolean) =>
+  z.object({
+    email: z
+      .string()
+      .refine(
+        (v) =>
+          z.email().safeParse(v).success ||
+          (!registerMode && v.trim().toLowerCase() === "supadmin@teachem"),
+        "Укажите корректный email",
+      ),
+    password: z
+      .string()
+      .min(12, "Не менее 12 символов")
+      .max(72, "Не более 72 символов"),
+    name: z.string().optional(),
+  });
 export function AuthForm({
   registerMode = false,
   initialRole = "student",
@@ -29,6 +38,7 @@ export function AuthForm({
   const cache = useQueryClient();
   const [role, setRole] = useState(initialRole);
   const [error, setError] = useState<unknown>();
+  const schema = makeSchema(registerMode);
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
   });
@@ -51,7 +61,7 @@ export function AuthForm({
             }),
           );
       cache.setQueryData(["me"], user);
-      router.replace(`/${user.role}`);
+      router.replace(accountPath(user));
     } catch (e) {
       setError(e);
     }
@@ -115,7 +125,8 @@ export function AuthForm({
             <label className="field">
               Email
               <input
-                type="email"
+                type={registerMode ? "email" : "text"}
+                inputMode="email"
                 autoComplete="email"
                 placeholder="you@example.com"
                 {...form.register("email")}

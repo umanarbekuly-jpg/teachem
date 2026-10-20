@@ -33,5 +33,6 @@ export const statusLabel: Record<string, string> = {
   submitted: "Завершён",
   student: "Ученик",
   tutor: "Тьютор",
-  admin: "Администратор",
+  admin: "Суперадминистратор",
+  SUPERADMIN: "Суперадминистратор",
 };

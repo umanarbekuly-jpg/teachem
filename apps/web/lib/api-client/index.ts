@@ -12,7 +12,7 @@ async function csrfToken() {
   }
   return csrf!;
 }
-async function secureFetch(request: Request) {
+export async function secureFetch(request: Request) {
   if (!["GET", "HEAD", "OPTIONS"].includes(request.method))
     request.headers.set("X-CSRF-Token", await csrfToken());
   const retry = request.clone();

@@ -1179,3 +1179,59 @@ h3 {
     grid-template-columns: 1fr;
   }
 }
+
+/* Account management and reusable table styles. */
+.user-filters,
+.user-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 18px;
+  margin: 24px 0;
+}
+.user-note {
+  display: block;
+  color: var(--muted);
+  margin-top: 4px;
+}
+.panel + .panel {
+  margin-top: 24px;
+}
+fieldset.form-stack {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 20px;
+}
+.table-wrap {
+  overflow-x: auto;
+  max-width: 100%;
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+.table-wrap table {
+  width: 100%;
+  min-width: 900px;
+  border-collapse: collapse;
+  text-align: left;
+}
+.table-wrap th,
+.table-wrap td {
+  padding: 16px 20px;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--line);
+}
+.table-wrap th {
+  background: var(--bg);
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+.table-wrap td {
+  white-space: nowrap;
+}
+.table-wrap tr:last-child td {
+  border-bottom: 0;
+}
+.table-wrap tbody tr:hover {
+  background: var(--bg);
+}

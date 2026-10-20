@@ -1,13 +1,10 @@
 "use client";
+import { accountPath } from "@/lib/account";
 import Link from "next/link";
 import { BRAND } from "@tutor/shared";
 import { Logo } from "./brand/logo";
 export { Logo } from "./brand/logo";
-import {
-  ArrowUpRight,
-  BookOpen,
-  LoaderCircle,
-} from "lucide-react";
+import { ArrowUpRight, BookOpen, LoaderCircle } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { api, result } from "@/lib/api-client";
 import { Button } from "./ui/button";
@@ -29,7 +26,7 @@ export function Header() {
           <Link href="/tutors">Тьюторы</Link>
         </nav>
         <Button variant="outline" asChild>
-          <Link href={me.data ? `/${me.data.role}` : "/login"}>
+          <Link href={me.data ? accountPath(me.data) : "/login"}>
             {me.data ? "Мой кабинет" : "Войти"}
             <ArrowUpRight size={16} />
           </Link>
