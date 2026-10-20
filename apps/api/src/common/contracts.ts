@@ -138,6 +138,31 @@ export function addResponseContracts(doc: OpenAPIObject) {
       currency: str,
     }),
     SettingsView: object({ commissionBps: num, paymentDetails: str }),
+    ManagedUserView: object({
+      id: str,
+      name: str,
+      surname: str,
+      email: str,
+      phone: str,
+      bio: str,
+      photoAssetId: nullable(str),
+      role: { type: "string", enum: ["student", "tutor", "SUPERADMIN"] },
+      blockedAt: nullable(str),
+      createdAt: str,
+      emailVerifiedAt: nullable(str),
+      mustChangePassword: bool,
+      profile: {
+        ...object({
+          bio: str,
+          photoAssetId: nullable(str),
+          experienceYears: num,
+          education: str,
+          subjects: array(str),
+          languages: array(str),
+        }),
+        nullable: true,
+      },
+    }),
     AdminUserView: object({
       id: str,
       name: str,
@@ -175,6 +200,7 @@ export function addResponseContracts(doc: OpenAPIObject) {
     description: "Только в ответе владельцу теста",
   };
   (schemas.ProfileView as SchemaObject).properties!.photoUrl = nullable(str);
+  (schemas.ManagedUserView as SchemaObject).properties!.photoUrl = nullable(str);
   (schemas.PaymentView as SchemaObject).properties!.enrollment = object({
     course: object({ id: str, title: str }),
     student: ref("PublicUser"),
@@ -241,7 +267,13 @@ export function addResponseContracts(doc: OpenAPIObject) {
     Tests_mine: "AttemptView[]",
     Tests_attempts: "AttemptView[]",
     Tests_save: "OkView",
-    Admin_users: "AdminUserView[]",
+    UserManagement_list: "ManagedUserView[]",
+    UserManagement_get: "ManagedUserView",
+    UserManagement_create: "ManagedUserView",
+    UserManagement_update: "ManagedUserView",
+    UserManagement_role: "OkView",
+    UserManagement_reset: "OkView",
+    Auth_changePassword: "OkView",
     Admin_block: "AdminUserView",
     Admin_unblock: "AdminUserView",
     Admin_listPayments: "PaymentView[]",

@@ -151,6 +151,55 @@
         ]
       }
     },
+    "/api/v1/auth/change-password": {
+      "post": {
+        "operationId": "Auth_changePassword",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangePasswordDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Успешный ответ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OkView"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Ошибка запроса"
+          },
+          "401": {
+            "description": "Ошибка запроса"
+          },
+          "403": {
+            "description": "Ошибка запроса"
+          },
+          "404": {
+            "description": "Ошибка запроса"
+          },
+          "409": {
+            "description": "Ошибка запроса"
+          },
+          "429": {
+            "description": "Ошибка запроса"
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      }
+    },
     "/api/v1/auth/logout": {
       "post": {
         "operationId": "Auth_logout",
@@ -3359,88 +3408,6 @@
         ]
       }
     },
-    "/api/v1/admin/users": {
-      "get": {
-        "operationId": "Admin_users",
-        "parameters": [
-          {
-            "name": "page",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "default": 1,
-              "type": "number"
-            }
-          },
-          {
-            "name": "pageSize",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "maximum": 100,
-              "default": 20,
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Успешный ответ",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "items": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/AdminUserView"
-                      }
-                    },
-                    "total": {
-                      "type": "integer"
-                    },
-                    "page": {
-                      "type": "integer"
-                    },
-                    "pageSize": {
-                      "type": "integer"
-                    }
-                  },
-                  "required": [
-                    "items",
-                    "total",
-                    "page",
-                    "pageSize"
-                  ]
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Ошибка запроса"
-          },
-          "401": {
-            "description": "Ошибка запроса"
-          },
-          "403": {
-            "description": "Ошибка запроса"
-          },
-          "404": {
-            "description": "Ошибка запроса"
-          },
-          "409": {
-            "description": "Ошибка запроса"
-          },
-          "429": {
-            "description": "Ошибка запроса"
-          }
-        },
-        "tags": [
-          "admin"
-        ]
-      }
-    },
     "/api/v1/admin/users/{id}/block": {
       "post": {
         "operationId": "Admin_block",
@@ -4046,6 +4013,388 @@
           "admin"
         ]
       }
+    },
+    "/api/v1/admin/users": {
+      "get": {
+        "operationId": "UserManagement_list",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "student",
+                "tutor",
+                "SUPERADMIN"
+              ]
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "active",
+                "blocked"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Успешный ответ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ManagedUserView"
+                      }
+                    },
+                    "total": {
+                      "type": "integer"
+                    },
+                    "page": {
+                      "type": "integer"
+                    },
+                    "pageSize": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "page",
+                    "pageSize"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Ошибка запроса"
+          },
+          "401": {
+            "description": "Ошибка запроса"
+          },
+          "403": {
+            "description": "Ошибка запроса"
+          },
+          "404": {
+            "description": "Ошибка запроса"
+          },
+          "409": {
+            "description": "Ошибка запроса"
+          },
+          "429": {
+            "description": "Ошибка запроса"
+          }
+        },
+        "tags": [
+          "admin-users"
+        ]
+      },
+      "post": {
+        "operationId": "UserManagement_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserCreateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Успешный ответ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManagedUserView"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Ошибка запроса"
+          },
+          "401": {
+            "description": "Ошибка запроса"
+          },
+          "403": {
+            "description": "Ошибка запроса"
+          },
+          "404": {
+            "description": "Ошибка запроса"
+          },
+          "409": {
+            "description": "Ошибка запроса"
+          },
+          "429": {
+            "description": "Ошибка запроса"
+          }
+        },
+        "tags": [
+          "admin-users"
+        ]
+      }
+    },
+    "/api/v1/admin/users/{id}": {
+      "get": {
+        "operationId": "UserManagement_get",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Успешный ответ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManagedUserView"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Ошибка запроса"
+          },
+          "401": {
+            "description": "Ошибка запроса"
+          },
+          "403": {
+            "description": "Ошибка запроса"
+          },
+          "404": {
+            "description": "Ошибка запроса"
+          },
+          "409": {
+            "description": "Ошибка запроса"
+          },
+          "429": {
+            "description": "Ошибка запроса"
+          }
+        },
+        "tags": [
+          "admin-users"
+        ]
+      },
+      "patch": {
+        "operationId": "UserManagement_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfileEditDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Успешный ответ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManagedUserView"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Ошибка запроса"
+          },
+          "401": {
+            "description": "Ошибка запроса"
+          },
+          "403": {
+            "description": "Ошибка запроса"
+          },
+          "404": {
+            "description": "Ошибка запроса"
+          },
+          "409": {
+            "description": "Ошибка запроса"
+          },
+          "429": {
+            "description": "Ошибка запроса"
+          }
+        },
+        "tags": [
+          "admin-users"
+        ]
+      }
+    },
+    "/api/v1/admin/users/{id}/role": {
+      "post": {
+        "operationId": "UserManagement_role",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RoleChangeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Успешный ответ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OkView"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Ошибка запроса"
+          },
+          "401": {
+            "description": "Ошибка запроса"
+          },
+          "403": {
+            "description": "Ошибка запроса"
+          },
+          "404": {
+            "description": "Ошибка запроса"
+          },
+          "409": {
+            "description": "Ошибка запроса"
+          },
+          "429": {
+            "description": "Ошибка запроса"
+          }
+        },
+        "tags": [
+          "admin-users"
+        ]
+      }
+    },
+    "/api/v1/admin/users/{id}/password": {
+      "post": {
+        "operationId": "UserManagement_reset",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasswordResetDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Успешный ответ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OkView"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Ошибка запроса"
+          },
+          "401": {
+            "description": "Ошибка запроса"
+          },
+          "403": {
+            "description": "Ошибка запроса"
+          },
+          "404": {
+            "description": "Ошибка запроса"
+          },
+          "409": {
+            "description": "Ошибка запроса"
+          },
+          "429": {
+            "description": "Ошибка запроса"
+          }
+        },
+        "tags": [
+          "admin-users"
+        ]
+      }
     }
   },
   "info": {
@@ -4098,6 +4447,9 @@
       "UserView": {
         "type": "object",
         "properties": {
+          "mustChangePassword": {
+            "type": "boolean"
+          },
           "id": {
             "type": "string"
           },
@@ -4112,11 +4464,12 @@
             "enum": [
               "student",
               "tutor",
-              "admin"
+              "SUPERADMIN"
             ]
           }
         },
         "required": [
+          "mustChangePassword",
           "id",
           "name",
           "email",
@@ -4139,6 +4492,27 @@
         "required": [
           "email",
           "password"
+        ]
+      },
+      "ChangePasswordDto": {
+        "type": "object",
+        "properties": {
+          "currentPassword": {
+            "type": "string"
+          },
+          "newPassword": {
+            "type": "string",
+            "minLength": 12,
+            "maxLength": 72
+          },
+          "confirmPassword": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "currentPassword",
+          "newPassword",
+          "confirmPassword"
         ]
       },
       "UpdateUserDto": {
@@ -4513,6 +4887,134 @@
             "type": "string"
           }
         }
+      },
+      "UserCreateDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "surname": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "bio": {
+            "type": "string"
+          },
+          "photoAssetId": {
+            "type": "object",
+            "nullable": true
+          },
+          "experienceYears": {
+            "type": "number"
+          },
+          "education": {
+            "type": "string"
+          },
+          "subjects": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "languages": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "student",
+              "tutor"
+            ]
+          },
+          "password": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "role",
+          "password"
+        ]
+      },
+      "ProfileEditDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "surname": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "bio": {
+            "type": "string"
+          },
+          "photoAssetId": {
+            "type": "object",
+            "nullable": true
+          },
+          "experienceYears": {
+            "type": "number"
+          },
+          "education": {
+            "type": "string"
+          },
+          "subjects": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "languages": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "RoleChangeDto": {
+        "type": "object",
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": [
+              "student",
+              "tutor"
+            ]
+          }
+        },
+        "required": [
+          "role"
+        ]
+      },
+      "PasswordResetDto": {
+        "type": "object",
+        "properties": {
+          "newPassword": {
+            "type": "string"
+          },
+          "confirmPassword": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "newPassword",
+          "confirmPassword"
+        ]
       },
       "PublicUser": {
         "type": "object",
@@ -5135,6 +5637,113 @@
         "required": [
           "commissionBps",
           "paymentDetails"
+        ]
+      },
+      "ManagedUserView": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "surname": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "bio": {
+            "type": "string"
+          },
+          "photoAssetId": {
+            "type": "string",
+            "nullable": true
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "student",
+              "tutor",
+              "SUPERADMIN"
+            ]
+          },
+          "blockedAt": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "emailVerifiedAt": {
+            "type": "string",
+            "nullable": true
+          },
+          "mustChangePassword": {
+            "type": "boolean"
+          },
+          "profile": {
+            "type": "object",
+            "properties": {
+              "bio": {
+                "type": "string"
+              },
+              "photoAssetId": {
+                "type": "string",
+                "nullable": true
+              },
+              "experienceYears": {
+                "type": "integer"
+              },
+              "education": {
+                "type": "string"
+              },
+              "subjects": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "languages": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "bio",
+              "photoAssetId",
+              "experienceYears",
+              "education",
+              "subjects",
+              "languages"
+            ],
+            "nullable": true
+          },
+          "photoUrl": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "surname",
+          "email",
+          "phone",
+          "bio",
+          "photoAssetId",
+          "role",
+          "blockedAt",
+          "createdAt",
+          "emailVerifiedAt",
+          "mustChangePassword",
+          "profile"
         ]
       },
       "AdminUserView": {

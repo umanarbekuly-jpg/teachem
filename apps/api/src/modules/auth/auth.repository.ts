@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, UnauthorizedException } from "@nestjs/common";
 import {
   Database,
   Transaction,
@@ -11,9 +11,17 @@ export class AuthRepository {
     userId: string,
     refreshTokenHash: string,
     expiresAt: Date,
+    authVersion: number,
   ) {
-    return this.db.authSession.create({
-      data: { id, userId, refreshTokenHash, expiresAt },
+    return this.db.atomic(async (tx) => {
+      const user = await tx.user.findUniqueOrThrow({ where: { id: userId } });
+      if (user.authVersion !== authVersion || user.blockedAt || user.deletedAt)
+        throw new UnauthorizedException(
+          "Данные входа изменились. Войдите заново",
+        );
+      return tx.authSession.create({
+        data: { id, userId, refreshTokenHash, expiresAt, authVersion },
+      });
     });
   }
   find(id: string) {

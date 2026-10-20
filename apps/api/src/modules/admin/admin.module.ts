@@ -67,7 +67,7 @@ export class AdminService {
   async block(id: string, a: Actor, blocked: boolean, requestId: string) {
     if (id === a.id) throw new BadRequestException("Нельзя заблокировать себя");
     const user = await this.users.byId(id);
-    if (user.role === "admin")
+    if (user.role === "SUPERADMIN")
       throw new BadRequestException("Блокировка администратора недоступна");
     return this.db.atomic(async (tx) => {
       const result = await this.users.block(id, blocked, tx);
@@ -119,7 +119,7 @@ export class AdminService {
   }
 }
 @ApiTags("admin")
-@Roles("admin")
+@Roles("SUPERADMIN")
 @Controller("admin")
 export class AdminController {
   constructor(
@@ -128,9 +128,6 @@ export class AdminController {
     private payouts: PayoutsService,
     private settings: SettingsService,
   ) {}
-  @Get("users") users(@Query() q: PageDto) {
-    return this.service.listUsers(q);
-  }
   @Post("users/:id/block") block(
     @Param("id", ParseUUIDPipe) id: string,
     @CurrentUser() a: Actor,

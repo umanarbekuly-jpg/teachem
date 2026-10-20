@@ -1,6 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import {
   IsEmail,
+  isEmail,
   IsIn,
   IsString,
   Length,
@@ -9,7 +10,15 @@ import {
 } from "class-validator";
 export class LoginDto {
   @ApiProperty({ example: "student@example.com" })
-  @IsEmail()
+  @ValidateBy({
+    name: "loginEmail",
+    validator: {
+      validate: (v: unknown) =>
+        typeof v === "string" &&
+        (isEmail(v) || v.trim().toLowerCase() === "supadmin@teachem"),
+      defaultMessage: () => "Укажите корректный email",
+    },
+  })
   @MaxLength(254)
   email!: string;
   @ApiProperty({ minLength: 12, maxLength: 72 })
@@ -26,14 +35,16 @@ export class LoginDto {
   password!: string;
 }
 export class RegisterDto extends LoginDto {
+  @IsEmail() declare email: string;
   @ApiProperty() @IsString() @Length(2, 100) name!: string;
   @ApiProperty({ enum: ["student", "tutor"] })
   @IsIn(["student", "tutor"])
   role!: "student" | "tutor";
 }
 export class UserView {
+  @ApiProperty() mustChangePassword!: boolean;
   @ApiProperty() id!: string;
   @ApiProperty() name!: string;
   @ApiProperty() email!: string;
-  @ApiProperty({ enum: ["student", "tutor", "admin"] }) role!: string;
+  @ApiProperty({ enum: ["student", "tutor", "SUPERADMIN"] }) role!: string;
 }

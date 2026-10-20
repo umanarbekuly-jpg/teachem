@@ -18,12 +18,14 @@ export interface Actor {
   id: string;
   role: Role;
   sessionId: string;
+  mustChangePassword?: boolean;
 }
 export type AuthRequest = Request & { actor: Actor; requestId: string };
 export const CurrentUser = createParamDecorator(
   (_data: unknown, ctx: ExecutionContext) =>
     ctx.switchToHttp().getRequest<AuthRequest>().actor,
 );
+export const PasswordAllowed = () => SetMetadata("passwordAllowed", true);
 export const Public = () => SetMetadata("public", true);
 export const Roles = (...roles: Role[]) => SetMetadata("roles", roles);
 export class PageDto {
@@ -62,9 +64,12 @@ export class ApiErrors implements ExceptionFilter {
     let status = 500;
     let message = "Внутренняя ошибка сервера";
     let details: unknown;
+    let fields: unknown;
     if (error instanceof HttpException) {
       status = error.getStatus();
       const body = error.getResponse();
+      if (typeof body === "object")
+        fields = (body as { fields?: unknown }).fields;
       const value =
         typeof body === "string"
           ? body
@@ -92,13 +97,12 @@ export class ApiErrors implements ExceptionFilter {
           error: error instanceof Error ? error.name : "UnknownError",
         }),
       );
-    res
-      .status(status)
-      .json({
-        code: `HTTP_${status}`,
-        message,
-        ...(details ? { details } : {}),
-        requestId: req.requestId,
-      });
+    res.status(status).json({
+      code: `HTTP_${status}`,
+      message,
+      ...(details ? { details } : {}),
+      ...(fields ? { fields } : {}),
+      requestId: req.requestId,
+    });
   }
 }

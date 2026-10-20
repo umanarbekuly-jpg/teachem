@@ -13,20 +13,18 @@ const student = {
 describe("Authorization boundaries", () => {
   it("does not disclose correct answers in student test DTO", async () => {
     const repo = {
-      get: jest
-        .fn()
-        .mockResolvedValue({
-          courseId: "course",
-          status: "published",
-          questions: [
-            {
-              id: "question",
-              options: [
-                { id: "a", text: "Answer", position: 0, isCorrect: true },
-              ],
-            },
-          ],
-        }),
+      get: jest.fn().mockResolvedValue({
+        courseId: "course",
+        status: "published",
+        questions: [
+          {
+            id: "question",
+            options: [
+              { id: "a", text: "Answer", position: 0, isCorrect: true },
+            ],
+          },
+        ],
+      }),
     };
     const service = new TestsService(
       repo as any,
@@ -81,19 +79,18 @@ describe("Authorization boundaries", () => {
       expiresIn: 1000,
     });
     const repo = {
-      find: jest
-        .fn()
-        .mockResolvedValue({
-          id: "session",
-          userId: "student",
-          refreshTokenHash: createHash("sha256")
-            .update("different")
-            .digest("hex"),
-          expiresAt: new Date(Date.now() + 10000),
-        }),
+      find: jest.fn().mockResolvedValue({
+        id: "session",
+        userId: "student",
+        refreshTokenHash: createHash("sha256")
+          .update("different")
+          .digest("hex"),
+        expiresAt: new Date(Date.now() + 10000),
+      }),
       revoke: jest.fn(),
     };
     const auth = new AuthService(
+      {} as any,
       {} as any,
       repo as any,
       { JWT_REFRESH_SECRET: secret } as any,
@@ -122,7 +119,7 @@ describe("Authorization boundaries", () => {
     );
     await service.review(
       "payment",
-      { id: "admin", role: "admin", sessionId: "s" },
+      { id: "admin", role: "SUPERADMIN", sessionId: "s" },
       true,
       undefined,
       "request",

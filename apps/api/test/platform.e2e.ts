@@ -53,6 +53,23 @@ describe("Platform HTTP integration", () => {
       csrf(stranger),
       csrf(admin),
     ]);
+    await db.user.upsert({
+      where: {
+        id:
+          (await db.user.findFirst({ where: { role: "SUPERADMIN" } }))?.id ??
+          randomUUID(),
+      },
+      update: {
+        email: `admin-${tag}@example.test`,
+        passwordHash: await hash("test-password-long", 12),
+      },
+      create: {
+        email: `admin-${tag}@example.test`,
+        passwordHash: await hash("test-password-long", 12),
+        name: "Test Admin",
+        role: "SUPERADMIN",
+      },
+    });
     for (const [agent, token, role, suffix] of [
       [tutor, tutorCsrf, "tutor", "tutor"],
       [student, studentCsrf, "student", "student"],
@@ -69,14 +86,6 @@ describe("Platform HTTP integration", () => {
           role,
         })
         .expect(201);
-    await db.user.create({
-      data: {
-        email: `admin-${tag}@example.test`,
-        passwordHash: await hash("test-password-long", 12),
-        name: "Test Admin",
-        role: "admin",
-      },
-    });
     await admin
       .post("/api/v1/auth/login")
       .set("Origin", origin)
@@ -109,7 +118,7 @@ describe("Platform HTTP integration", () => {
         email: `bad-${tag}@example.test`,
         password: "test-password-long",
         name: "Bad Actor",
-        role: "admin",
+        role: "SUPERADMIN",
       })
       .expect(400);
   });

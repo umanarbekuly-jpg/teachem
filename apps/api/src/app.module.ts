@@ -29,6 +29,7 @@ import { PaymentsModule } from "./modules/payments/payments.module";
 import { PayoutsModule } from "./modules/payouts/payouts.module";
 import { TestsModule } from "./modules/tests/tests.module";
 import { SessionsModule } from "./modules/sessions/sessions.module";
+import { UserManagementModule } from "./modules/user-management/user-management.module";
 import { AdminModule } from "./modules/admin/admin.module";
 import { SettingsModule } from "./modules/admin/settings.module";
 import { Public } from "./common/http";
@@ -73,6 +74,7 @@ export class HealthController {
     TestsModule,
     SessionsModule,
     AdminModule,
+    UserManagementModule,
   ],
   controllers: [HealthController],
   providers: [

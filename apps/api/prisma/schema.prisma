@@ -8,7 +8,7 @@ datasource db {
 enum Role {
   student
   tutor
-  admin
+  SUPERADMIN
 }
 enum CourseStatus {
   draft
@@ -61,6 +61,14 @@ model User {
   email String @unique
   passwordHash String
   name String
+  surname String @default("")
+  phone String @default("")
+  bio String @default("")
+  photoAssetId String? @db.Uuid
+  avatar FileAsset? @relation("UserAvatar", fields: [photoAssetId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  emailVerifiedAt DateTime? @db.Timestamptz(3)
+  mustChangePassword Boolean @default(false)
+  authVersion Int @default(0)
   role Role
   blockedAt DateTime? @db.Timestamptz(3)
   deletedAt DateTime? @db.Timestamptz(3)
@@ -85,6 +93,7 @@ model AuthSession {
   userId String @db.Uuid
   user User @relation(fields: [userId], references: [id])
   refreshTokenHash String
+  authVersion Int @default(0)
   expiresAt DateTime @db.Timestamptz(3)
   revokedAt DateTime? @db.Timestamptz(3)
   createdAt DateTime @default(now()) @db.Timestamptz(3)
@@ -140,6 +149,7 @@ model FileAsset {
   expiresAt DateTime? @db.Timestamptz(3)
   createdAt DateTime @default(now()) @db.Timestamptz(3)
   updatedAt DateTime @updatedAt @db.Timestamptz(3)
+  userAvatars User[] @relation("UserAvatar")
   photoFor TutorProfile?
   materials Material[]
   receipts Payment[]

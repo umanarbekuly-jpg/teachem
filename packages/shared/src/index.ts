@@ -1,5 +1,5 @@
 export { BRAND } from "./brand";
-export const ROLES = ["student", "tutor", "admin"] as const;
+export const ROLES = ["student", "tutor", "SUPERADMIN"] as const;
 export type Role = (typeof ROLES)[number];
 export const PAYMENT_STATUSES = [
   "pending",

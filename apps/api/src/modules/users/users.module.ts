@@ -26,6 +26,8 @@ export const userSelect = {
   role: true,
   blockedAt: true,
   createdAt: true,
+  mustChangePassword: true,
+  authVersion: true,
 } as const;
 export const publicUserSelect = { id: true, name: true } as const;
 export class UpdateUserDto {
@@ -73,7 +75,10 @@ export class UsersRepository {
   block(id: string, blocked: boolean, tx: Transaction) {
     return tx.user.update({
       where: { id },
-      data: { blockedAt: blocked ? new Date() : null },
+      data: {
+        blockedAt: blocked ? new Date() : null,
+        authVersion: { increment: 1 },
+      },
       select: userSelect,
     });
   }

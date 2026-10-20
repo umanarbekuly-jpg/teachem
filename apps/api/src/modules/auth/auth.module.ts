@@ -13,7 +13,14 @@ import { ApiCreatedResponse, ApiOkResponse, ApiTags } from "@nestjs/swagger";
 import { Throttle } from "@nestjs/throttler";
 import type { Request, Response } from "express";
 import { randomBytes } from "crypto";
-import { Actor, CurrentUser, Public } from "../../common/http";
+import { ChangePasswordDto } from "./password.dto";
+import {
+  Actor,
+  AuthRequest,
+  CurrentUser,
+  Public,
+  PasswordAllowed,
+} from "../../common/http";
 import { ENV, Environment } from "../../config/env";
 import { UsersModule, UsersService } from "../users/users.module";
 import { AuthService } from "./auth.service";
@@ -44,9 +51,15 @@ export class AuthController {
       maxAge: 30 * 86400000,
     });
   }
-  @Public() @Get("csrf") csrf(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+  @Public() @Get("csrf") csrf(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
     const previous = req.cookies?.csrf;
-    const token = typeof previous === "string" && /^[a-f0-9]{64}$/.test(previous) ? previous : randomBytes(32).toString("hex");
+    const token =
+      typeof previous === "string" && /^[a-f0-9]{64}$/.test(previous)
+        ? previous
+        : randomBytes(32).toString("hex");
     res.cookie("csrf", token, {
       httpOnly: true,
       secure: this.env.COOKIE_SECURE,
@@ -92,7 +105,18 @@ export class AuthController {
     this.cookies(res, tokens);
     return tokens.user;
   }
-  @Post("logout") async logout(
+  @PasswordAllowed() @Post("change-password") async changePassword(
+    @CurrentUser() actor: Actor,
+    @Body() dto: ChangePasswordDto,
+    @Req() req: AuthRequest,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const result = await this.service.changePassword(actor, dto, req.requestId);
+    res.clearCookie("access", { path: "/" });
+    res.clearCookie("refresh", { path: "/" });
+    return result;
+  }
+  @PasswordAllowed() @Post("logout") async logout(
     @CurrentUser() actor: Actor,
     @Res({ passthrough: true }) res: Response,
   ) {
@@ -101,7 +125,7 @@ export class AuthController {
     res.clearCookie("refresh", { path: "/" });
     return { ok: true };
   }
-  @Get("me") @ApiOkResponse({ type: UserView }) me(
+  @PasswordAllowed() @Get("me") @ApiOkResponse({ type: UserView }) me(
     @CurrentUser() actor: Actor,
   ) {
     return this.users.byId(actor.id);

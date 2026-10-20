@@ -27,6 +27,14 @@ export class AuthGuard implements CanActivate {
     const token = req.cookies?.access;
     if (!token) throw new UnauthorizedException("Войдите в аккаунт");
     req.actor = await this.auth.authenticate(token);
+    if (
+      req.actor.mustChangePassword &&
+      !this.reflector.getAllAndOverride<boolean>("passwordAllowed", [
+        context.getHandler(),
+        context.getClass(),
+      ])
+    )
+      throw new ForbiddenException("Сначала смените назначенный пароль");
     const roles = this.reflector.getAllAndOverride<Role[]>("roles", [
       context.getHandler(),
       context.getClass(),

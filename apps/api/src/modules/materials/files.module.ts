@@ -137,7 +137,11 @@ export class FilesService {
         ![".pdf", ".png", ".jpg", ".jpeg", ".webp"].includes(ext))
     )
       throw new BadRequestException("Недопустимый формат файла");
-    if (dto.purpose !== "receipt" && a.role !== "tutor")
+    if (
+      dto.purpose !== "receipt" &&
+      a.role !== "tutor" &&
+      !(a.role === "SUPERADMIN" && dto.purpose === "avatar")
+    )
       throw new ForbiddenException("Загрузка доступна тьютору");
     const file = await this.repo.create(
       a.id,
@@ -194,7 +198,7 @@ export class FilesService {
   async download(id: string, a: Actor) {
     const f = await this.repo.get(id);
     if (f.status !== "ready") throw new BadRequestException("Файл не готов");
-    if (f.ownerId !== a.id && a.role !== "admin") {
+    if (f.ownerId !== a.id && a.role !== "SUPERADMIN") {
       const bindings = await this.repo.bindings(id);
       let allowed = false;
       for (const m of bindings.materials) {

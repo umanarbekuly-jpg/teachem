@@ -114,7 +114,7 @@ export class EnrollmentsService {
   }
   async assertAccess(a: Actor, courseId: string) {
     const course = await this.courses.get(courseId);
-    if (a.role === "admin" || course.tutorId === a.id) return course;
+    if (a.role === "SUPERADMIN" || course.tutorId === a.id) return course;
     const e = await this.repo.access(a.id, courseId);
     if (
       course.tutor.blockedAt ||

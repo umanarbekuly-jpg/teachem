@@ -56,7 +56,7 @@ export class PaymentsService {
   }
   async get(id: string, a: Actor) {
     const p = await this.repo.find(id);
-    if (a.role !== "admin") await this.enrollments.own(p.enrollmentId, a);
+    if (a.role !== "SUPERADMIN") await this.enrollments.own(p.enrollmentId, a);
     return p;
   }
   async instructions(id: string, a: Actor) {

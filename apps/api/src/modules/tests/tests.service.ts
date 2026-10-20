@@ -45,7 +45,7 @@ export class TestsService {
   async get(id: string, a: Actor) {
     const t = await this.repo.get(id);
     const c = await this.enrollments.assertAccess(a, t.courseId);
-    if (c.tutorId === a.id || a.role === "admin") return t;
+    if (c.tutorId === a.id || a.role === "SUPERADMIN") return t;
     if (t.status !== "published") throw new ForbiddenException();
     return {
       ...t,
@@ -64,7 +64,7 @@ export class TestsService {
     return this.repo.list(
       courseId,
       q,
-      c.tutorId === a.id || a.role === "admin",
+      c.tutorId === a.id || a.role === "SUPERADMIN",
     );
   }
   async update(id: string, a: Actor, dto: UpdateTestDto) {
