@@ -1,4 +1,6 @@
 "use client";
+import { SUBJECTS } from "@tutor/shared";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
@@ -13,35 +15,40 @@ import {
   Pagination,
 } from "./common";
 import { Button } from "./ui/button";
-const subjects = [
-  "Математика",
-  "Английский язык",
-  "Русский язык",
-  "Физика",
-  "Химия",
-  "Биология",
-  "Информатика",
-  "История",
-  "Казахский язык",
-];
 export function Catalog({
   tutors = false,
   initialSubject = "",
+  initialTag = "",
+  initialSearch = "",
+  initialFrom = "",
+  initialTo = "",
 }: {
   tutors?: boolean;
   initialSubject?: string;
+  initialTag?: string;
+  initialSearch?: string;
+  initialFrom?: string;
+  initialTo?: string;
 }) {
+  const router = useRouter();
+  const subjectOptions = useQuery({
+    queryKey: ["course-subjects"],
+    queryFn: () => result(api.GET("/api/v1/courses/subjects")),
+  });
+  const subjects = subjectOptions.data?.items ?? [...SUBJECTS];
   const [page, setPage] = useState(1);
   const [filters, setFilters] = useState({
-    search: "",
+    search: initialSearch,
+    tag: initialTag,
     subject: initialSubject,
-    from: "",
-    to: "",
+    from: initialFrom,
+    to: initialTo,
   });
   const [query, setQuery] = useState(filters);
   const params = {
     page,
     pageSize: 12,
+    ...(query.tag && !tutors ? { tag: query.tag } : {}),
     ...(query.search ? { search: query.search } : {}),
     ...(query.subject ? { subject: query.subject } : {}),
     ...(query.from
@@ -49,6 +56,9 @@ export function Catalog({
       : {}),
     ...(query.to ? { priceToMinor: Math.round(Number(query.to) * 100) } : {}),
   };
+  const filterQuery = new URLSearchParams(
+    Object.entries(query).filter(([, v]) => v),
+  ).toString();
   const courses = useQuery({
     queryKey: ["catalog", params],
     queryFn: () =>
@@ -81,12 +91,16 @@ export function Catalog({
             e.preventDefault();
             setPage(1);
             setQuery(filters);
+            if (!tutors)
+              router.push(
+                `/catalog?${new URLSearchParams(Object.entries(filters).filter(([, v]) => v)).toString()}`,
+              );
           }}
         >
           <label className="field">
             {tutors ? "Имя тьютора" : "Поиск курса"}
             <input
-              placeholder={tutors ? "Кого ищем?" : "Название или предмет"}
+              placeholder={tutors ? "Кого ищем?" : "Название, предмет или #тег"}
               value={filters.search}
               onChange={(e) =>
                 setFilters({ ...filters, search: e.target.value })
@@ -127,6 +141,25 @@ export function Catalog({
           </label>
           <Button>Найти</Button>
         </form>
+        {query.tag && !tutors && (
+          <div className="course-tags">
+            <span className="course-tag">#{query.tag}</span>
+            <Button
+              variant="ghost"
+              onClick={() => {
+                const next = { ...query, tag: "" };
+                setQuery(next);
+                setFilters({ ...filters, tag: "" });
+                setPage(1);
+                router.push(
+                  `/catalog?${new URLSearchParams(Object.entries(next).filter(([, v]) => v)).toString()}`,
+                );
+              }}
+            >
+              Сбросить тег
+            </Button>
+          </div>
+        )}
         <ErrorBox error={state.error} />
         {state.isLoading ? <Loading /> : null}
         {!state.isLoading && state.data?.total === 0 && (
@@ -138,7 +171,7 @@ export function Catalog({
         <div className="course-grid">
           {!tutors &&
             courses.data?.items.map((c) => (
-              <CourseCard key={c.id} course={c} />
+              <CourseCard key={c.id} course={c} filterQuery={filterQuery} />
             ))}
           {tutors &&
             teachers.data?.items.map((t) => (

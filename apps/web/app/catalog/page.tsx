@@ -2,7 +2,23 @@ import { Catalog } from "@/components/catalog";
 export default async function Page({
   searchParams,
 }: {
-  searchParams: Promise<{ subject?: string }>;
+  searchParams: Promise<{
+    subject?: string;
+    tag?: string;
+    search?: string;
+    from?: string;
+    to?: string;
+  }>;
 }) {
-  return <Catalog initialSubject={(await searchParams).subject} />;
+  const p = await searchParams;
+  return (
+    <Catalog
+      key={JSON.stringify(p)}
+      initialSubject={p.subject}
+      initialTag={p.tag}
+      initialSearch={p.search}
+      initialFrom={p.from}
+      initialTo={p.to}
+    />
+  );
 }

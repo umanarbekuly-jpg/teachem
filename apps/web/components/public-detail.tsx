@@ -1,4 +1,6 @@
 "use client";
+import { daysLabel } from "@tutor/shared";
+import { CourseCover, CourseTags } from "./course-presentation";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -47,13 +49,18 @@ export function CourseDetail({ id }: { id: string }) {
         {c && (
           <>
             <div className="page-heading">
-              <span className="eyebrow">
-                {c.subject} · {c.level}
-              </span>
+              <span className="eyebrow">{c.subject}</span>
               <h1>{c.title}</h1>
             </div>
             <div className="detail-layout">
               <section className="panel">
+                <CourseCover subject={c.subject} coverUrl={c.coverUrl} />
+                <CourseTags tags={c.tags} />
+                {me.data?.role === "SUPERADMIN" && (
+                  <Link className="text-link" href={`/admin/courses/${c.id}`}>
+                    Редактировать курс →
+                  </Link>
+                )}
                 <h2>О курсе</h2>
                 <p className="detail-copy">{c.description}</p>
                 <hr
@@ -69,8 +76,12 @@ export function CourseDetail({ id }: { id: string }) {
                 </Link>
               </section>
               <aside className="panel detail-aside">
-                <span className="eyebrow">30 ДНЕЙ ОБУЧЕНИЯ</span>
-                <div className="detail-price">{money(c.monthlyPriceMinor)}</div>
+                <span className="eyebrow">
+                  {daysLabel(c.durationDays)} обучения
+                </span>
+                <div className="detail-price">
+                  {money(c.monthlyPriceMinor)} / {daysLabel(c.durationDays)}
+                </div>
                 <p className="muted small" style={{ marginBottom: 20 }}>
                   Материалы, тесты и расписание курса. Доступ откроется после
                   подтверждения оплаты.

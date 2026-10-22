@@ -1,4 +1,5 @@
 "use client";
+import { AdminCourses, ManagedCourseEditor } from "./course-editor";
 import { accountPath } from "@/lib/account";
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -57,6 +58,7 @@ const nav: Record<string, [keyof typeof icons, string][]> = {
     ["profile", "Мой профиль"],
   ],
   admin: [
+    ["courses", "Курсы"],
     ["payments", "Проверка платежей"],
     ["users", "Пользователи"],
     ["payouts", "Выплаты"],
@@ -98,7 +100,11 @@ export function Dashboard({
   if (!me.data || accountPath(me.data) !== `/${role}`) return <Loading />;
   const user = me.data;
   let content: React.ReactNode;
-  if (role === "admin") content = <AdminPanel section={current} />;
+  if (role === "admin" && current === "courses" && section[1])
+    content = <ManagedCourseEditor id={section[1]} />;
+  else if (role === "admin" && current === "courses")
+    content = <AdminCourses />;
+  else if (role === "admin") content = <AdminPanel section={current} />;
   else if (current === "payment" && section[1])
     content = <PaymentScreen enrollmentId={section[1]} />;
   else if (current === "test" && section[1])

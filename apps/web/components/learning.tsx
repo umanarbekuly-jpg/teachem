@@ -1,7 +1,9 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { daysLabel } from "@tutor/shared";
+import { CourseEditor } from "./course-editor";
+export { CourseEditor } from "./course-editor";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api, result, downloadFile, uploadFile } from "@/lib/api-client";
 import { Badge, Empty, ErrorBox, Loading, Pagination } from "./common";
@@ -12,85 +14,6 @@ import { TestEditor } from "./tests";
 import { date, money } from "@/lib/utils";
 import type { components } from "@/lib/api-client/schema";
 type Course = components["schemas"]["CourseView"];
-const courseFields = [
-  { name: "title", label: "Название курса" },
-  { name: "description", label: "Описание", type: "textarea" as const },
-  {
-    name: "subject",
-    label: "Предмет",
-    options: [
-      "Математика",
-      "Английский язык",
-      "Русский язык",
-      "Физика",
-      "Химия",
-      "Биология",
-      "Информатика",
-      "История",
-      "Казахский язык",
-    ],
-  },
-  {
-    name: "level",
-    label: "Уровень",
-    options: ["Начальный", "Средний", "Продвинутый", "Подготовка к экзаменам"],
-  },
-  {
-    name: "price",
-    label: "Цена за 30 дней, ₸",
-    type: "number" as const,
-    min: 1,
-    max: 10000000,
-  },
-];
-export function CourseEditor({ course }: { course?: Course }) {
-  const router = useRouter();
-  const cache = useQueryClient();
-  return (
-    <>
-      <h1>{course ? "Редактировать курс" : "Новый курс"}</h1>
-      <p className="subheading">
-        Расскажите, чему научится ученик и как проходят занятия.
-      </p>
-      <div className="panel">
-        <DataForm
-          fields={courseFields}
-          initial={
-            course
-              ? {
-                  title: course.title,
-                  description: course.description,
-                  subject: course.subject,
-                  level: course.level,
-                  price: course.monthlyPriceMinor / 100,
-                }
-              : {}
-          }
-          submit={async (d) => {
-            const body = {
-              title: d.title!,
-              description: d.description!,
-              subject: d.subject!,
-              level: d.level!,
-              monthlyPriceMinor: Math.round(Number(d.price) * 100),
-            };
-            const saved = course
-              ? await result(
-                  api.PATCH("/api/v1/courses/{id}", {
-                    params: { path: { id: course.id } },
-                    body,
-                  }),
-                )
-              : await result(api.POST("/api/v1/courses", { body }));
-            await cache.invalidateQueries({ queryKey: ["my-courses"] });
-            await cache.invalidateQueries({ queryKey: ["workspace-course"] });
-            if (!course) router.push(`/tutor/courses/${saved.id}`);
-          }}
-        />
-      </div>
-    </>
-  );
-}
 export function CourseWorkspace({
   id,
   role,
@@ -585,7 +508,9 @@ export function PaymentScreen({ enrollmentId }: { enrollmentId: string }) {
     <>
       <h1>Оплата курса</h1>
       <p className="subheading">
-        Доступ на 30 дней после подтверждения платежа.
+        {payment.data
+          ? `Доступ на ${daysLabel(payment.data.durationDays)} после подтверждения платежа.`
+          : "Срок и сумма будут зафиксированы при получении реквизитов."}
       </p>
       <div className="panel">
         <h2>Как это работает</h2>

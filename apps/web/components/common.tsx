@@ -1,7 +1,8 @@
 "use client";
 import { accountPath } from "@/lib/account";
 import Link from "next/link";
-import { BRAND } from "@tutor/shared";
+import { CourseCover, CourseTags } from "./course-presentation";
+import { BRAND, daysLabel } from "@tutor/shared";
 import { Logo } from "./brand/logo";
 export { Logo } from "./brand/logo";
 import { ArrowUpRight, BookOpen, LoaderCircle } from "lucide-react";
@@ -120,38 +121,33 @@ export function Pagination({
 export function CourseCard({
   course,
   manage = false,
+  managePrefix = "tutor",
+  filterQuery = "",
 }: {
   course: Course;
   manage?: boolean;
+  managePrefix?: "tutor" | "admin";
+  filterQuery?: string;
 }) {
-  const icons: Record<string, string> = {
-    Математика: "∑",
-    Физика: "↗",
-    "Английский язык": "Aa",
-    Информатика: "</>",
-    Химия: "H₂O",
-  };
   return (
     <article className="course-card">
-      <div className={`course-art art-${course.subject.length % 4}`}>
-        <span className="art-symbol">{icons[course.subject] ?? "✳"}</span>
-        <span className="art-tag">{course.subject}</span>
-        <div className="art-orbit" />
-      </div>
+      <CourseCover subject={course.subject} coverUrl={course.coverUrl} />
       <div className="course-body">
         <div className="eyebrow">
-          {course.level}
           {manage && <Badge status={course.status} />}
         </div>
         <Link
           className="course-title"
           href={
-            manage ? `/tutor/courses/${course.id}` : `/courses/${course.id}`
+            manage
+              ? `/${managePrefix}/courses/${course.id}`
+              : `/courses/${course.id}`
           }
         >
           {course.title}
         </Link>
         <p className="course-description">{course.description}</p>
+        <CourseTags tags={course.tags ?? []} filterQuery={filterQuery} />
         <div className="tutor-mini">
           <span className="avatar">
             {course.tutor?.name?.slice(0, 1) ?? "Т"}
@@ -161,12 +157,14 @@ export function CourseCard({
         <div className="course-price">
           <div>
             <strong>{money(course.monthlyPriceMinor)}</strong>
-            <span> / 30 дней</span>
+            <span> / {daysLabel(course.durationDays)}</span>
           </div>
           <Link
             aria-label={`Открыть ${course.title}`}
             href={
-              manage ? `/tutor/courses/${course.id}` : `/courses/${course.id}`
+              manage
+                ? `/${managePrefix}/courses/${course.id}`
+                : `/courses/${course.id}`
             }
           >
             <ArrowUpRight size={20} />

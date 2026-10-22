@@ -66,7 +66,7 @@ export async function result<T>(
 }
 export async function uploadFile(
   file: File,
-  purpose: "material" | "receipt" | "avatar",
+  purpose: "material" | "receipt" | "avatar" | "course_cover",
 ) {
   const upload = await result(
     api.POST("/api/v1/files/uploads", {
