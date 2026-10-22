@@ -211,6 +211,7 @@ export function CourseEditor({ course }: { course?: Course }) {
             <input
               id="course-cover"
               type="file"
+              aria-describedby="course-cover-size-hint"
               accept="image/jpeg,image/png,image/webp"
               onChange={(e) => {
                 const f = e.target.files?.[0];
@@ -228,6 +229,10 @@ export function CourseEditor({ course }: { course?: Course }) {
                 e.target.value = "";
               }}
             />
+            <span id="course-cover-size-hint" className="small muted">
+              Рекомендуемый размер: 1200 × 550 пикселей. Можно загружать
+              изображения других размеров.
+            </span>
             <span className="small muted">
               JPEG, PNG или WebP до 5 МБ. Без файла используется обложка
               предмета.
