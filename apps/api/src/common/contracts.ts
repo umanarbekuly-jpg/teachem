@@ -23,6 +23,7 @@ const page = (name: string) =>
 export function addResponseContracts(doc: OpenAPIObject) {
   const schemas = doc.components!.schemas!;
   Object.assign(schemas, {
+    SubjectOptions: object({ items: array(str) }),
     PublicUser: object({ id: str, name: str }),
     CourseView: object({
       id: str,
@@ -31,6 +32,10 @@ export function addResponseContracts(doc: OpenAPIObject) {
       description: str,
       subject: str,
       level: str,
+      durationDays: num,
+      tags: array(str),
+      coverAssetId: nullable(str),
+      coverUrl: nullable(str),
       monthlyPriceMinor: num,
       currency: str,
       status: { type: "string", enum: ["draft", "published", "archived"] },
@@ -66,6 +71,7 @@ export function addResponseContracts(doc: OpenAPIObject) {
       id: str,
       enrollmentId: str,
       amountMinor: num,
+      durationDays: num,
       currency: str,
       commissionBps: num,
       status: {
@@ -200,7 +206,8 @@ export function addResponseContracts(doc: OpenAPIObject) {
     description: "Только в ответе владельцу теста",
   };
   (schemas.ProfileView as SchemaObject).properties!.photoUrl = nullable(str);
-  (schemas.ManagedUserView as SchemaObject).properties!.photoUrl = nullable(str);
+  (schemas.ManagedUserView as SchemaObject).properties!.photoUrl =
+    nullable(str);
   (schemas.PaymentView as SchemaObject).properties!.enrollment = object({
     course: object({ id: str, title: str }),
     student: ref("PublicUser"),
@@ -222,7 +229,10 @@ export function addResponseContracts(doc: OpenAPIObject) {
   });
   const mappings: Record<string, string> = {
     Courses_list: "CourseView[]",
+    Courses_all: "CourseView[]",
     Courses_mine: "CourseView[]",
+    Courses_subjects: "SubjectOptions",
+    Courses_edit: "CourseView",
     Courses_get: "CourseView",
     Courses_create: "CourseView",
     Courses_update: "CourseView",

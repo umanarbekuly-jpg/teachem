@@ -212,6 +212,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/courses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["Courses_all"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/courses": {
         parameters: {
             query?: never;
@@ -236,6 +252,38 @@ export interface paths {
             cookie?: never;
         };
         get: operations["Courses_mine"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/courses/subjects": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["Courses_subjects"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/courses/{id}/edit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["Courses_edit"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1025,7 +1073,11 @@ export interface components {
             title: string;
             description: string;
             subject: string;
-            level: string;
+            level?: string;
+            /** @default 30 */
+            durationDays: number;
+            tags?: string[];
+            coverAssetId?: string | null;
             /** @description Цена в тиынах */
             monthlyPriceMinor: number;
         };
@@ -1034,12 +1086,16 @@ export interface components {
             description?: string;
             subject?: string;
             level?: string;
+            /** @default 30 */
+            durationDays: number;
+            tags?: string[];
+            coverAssetId?: string | null;
             /** @description Цена в тиынах */
             monthlyPriceMinor?: number;
         };
         UploadDto: {
             /** @enum {string} */
-            purpose: "avatar" | "material" | "receipt";
+            purpose: "avatar" | "material" | "receipt" | "course_cover";
             originalName: string;
             mimeType: string;
             sizeBytes: number;
@@ -1149,6 +1205,9 @@ export interface components {
             newPassword: string;
             confirmPassword: string;
         };
+        SubjectOptions: {
+            items: string[];
+        };
         PublicUser: {
             id: string;
             name: string;
@@ -1160,6 +1219,10 @@ export interface components {
             description: string;
             subject: string;
             level: string;
+            durationDays: number;
+            tags: string[];
+            coverAssetId: string | null;
+            coverUrl: string | null;
             monthlyPriceMinor: number;
             currency: string;
             /** @enum {string} */
@@ -1198,6 +1261,7 @@ export interface components {
             id: string;
             enrollmentId: string;
             amountMinor: number;
+            durationDays: number;
             currency: string;
             commissionBps: number;
             /** @enum {string} */
@@ -1953,6 +2017,7 @@ export interface operations {
                 page?: number;
                 pageSize?: number;
                 search?: string;
+                tag?: string;
                 subject?: string;
                 priceFromMinor?: number;
                 priceToMinor?: number;
@@ -2085,12 +2150,88 @@ export interface operations {
             };
         };
     };
+    Courses_all: {
+        parameters: {
+            query?: {
+                page?: number;
+                pageSize?: number;
+                search?: string;
+                tag?: string;
+                subject?: string;
+                priceFromMinor?: number;
+                priceToMinor?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Успешный ответ */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["CourseView"][];
+                        total: number;
+                        page: number;
+                        pageSize: number;
+                    };
+                };
+            };
+            /** @description Ошибка запроса */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Ошибка запроса */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Ошибка запроса */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Ошибка запроса */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Ошибка запроса */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Ошибка запроса */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     Courses_list: {
         parameters: {
             query?: {
                 page?: number;
                 pageSize?: number;
                 search?: string;
+                tag?: string;
                 subject?: string;
                 priceFromMinor?: number;
                 priceToMinor?: number;
@@ -2231,6 +2372,7 @@ export interface operations {
                 page?: number;
                 pageSize?: number;
                 search?: string;
+                tag?: string;
                 subject?: string;
                 priceFromMinor?: number;
                 priceToMinor?: number;
@@ -2253,6 +2395,132 @@ export interface operations {
                         page: number;
                         pageSize: number;
                     };
+                };
+            };
+            /** @description Ошибка запроса */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Ошибка запроса */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Ошибка запроса */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Ошибка запроса */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Ошибка запроса */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Ошибка запроса */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    Courses_subjects: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Успешный ответ */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubjectOptions"];
+                };
+            };
+            /** @description Ошибка запроса */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Ошибка запроса */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Ошибка запроса */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Ошибка запроса */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Ошибка запроса */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Ошибка запроса */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    Courses_edit: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Успешный ответ */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CourseView"];
                 };
             };
             /** @description Ошибка запроса */

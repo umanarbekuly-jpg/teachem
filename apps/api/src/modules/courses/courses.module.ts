@@ -20,8 +20,11 @@ import { CourseQuery, CreateCourseDto, UpdateCourseDto } from "./courses.dto";
 @Injectable()
 export class CoursesService {
   constructor(private repo: CoursesRepository) {}
-  list(q: CourseQuery, tutorId?: string) {
-    return this.repo.list(q, tutorId);
+  subjects() {
+    return this.repo.subjects();
+  }
+  list(q: CourseQuery, tutorId?: string, all = false) {
+    return this.repo.list(q, tutorId, all);
   }
   async publicGet(id: string) {
     const c = await this.repo.get(id);
@@ -34,14 +37,19 @@ export class CoursesService {
   }
   async owned(id: string, actor: Actor) {
     const c = await this.repo.get(id);
-    if (c.tutorId !== actor.id) throw new ForbiddenException("Это не ваш курс");
+    if (c.tutorId !== actor.id && actor.role !== "SUPERADMIN")
+      throw new ForbiddenException("Это не ваш курс");
     return c;
   }
   async create(actor: Actor, dto: CreateCourseDto) {
+    if (dto.coverAssetId)
+      await this.repo.assertCover(dto.coverAssetId, actor.id);
     return this.repo.create(actor.id, dto);
   }
   async update(id: string, actor: Actor, dto: UpdateCourseDto) {
-    await this.owned(id, actor);
+    const current = await this.owned(id, actor);
+    if (dto.coverAssetId && dto.coverAssetId !== current.coverAssetId)
+      await this.repo.assertCover(dto.coverAssetId, actor.id);
     return this.repo.update(id, dto);
   }
   async status(id: string, actor: Actor, status: "published" | "archived") {
@@ -65,6 +73,9 @@ export class CoursesService {
 @Controller()
 export class CoursesController {
   constructor(private service: CoursesService) {}
+  @Roles("SUPERADMIN") @Get("admin/courses") all(@Query() q: CourseQuery) {
+    return this.service.list(q, undefined, true);
+  }
   @Public() @Get("courses") list(@Query() q: CourseQuery) {
     return this.service.list(q);
   }
@@ -73,6 +84,15 @@ export class CoursesController {
     @Query() q: CourseQuery,
   ) {
     return this.service.list(q, a.id);
+  }
+  @Public() @Get("courses/subjects") subjects() {
+    return this.service.subjects();
+  }
+  @Roles("tutor", "SUPERADMIN") @Get("courses/:id/edit") edit(
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentUser() a: Actor,
+  ) {
+    return this.service.owned(id, a);
   }
   @Public() @Get("courses/:id") get(@Param("id", ParseUUIDPipe) id: string) {
     return this.service.publicGet(id);
@@ -83,7 +103,7 @@ export class CoursesController {
   ) {
     return this.service.create(a, dto);
   }
-  @Roles("tutor") @Patch("courses/:id") update(
+  @Roles("tutor", "SUPERADMIN") @Patch("courses/:id") update(
     @Param("id", ParseUUIDPipe) id: string,
     @CurrentUser() a: Actor,
     @Body() dto: UpdateCourseDto,

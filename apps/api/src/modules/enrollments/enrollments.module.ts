@@ -23,9 +23,9 @@ import {
   Roles,
 } from "../../common/http";
 import { CoursesModule, CoursesService } from "../courses/courses.module";
-export function extendAccess(current: Date | null, now: Date) {
+export function extendAccess(current: Date | null, now: Date, days = 30) {
   return new Date(
-    Math.max(current?.getTime() ?? 0, now.getTime()) + 30 * 86400000,
+    Math.max(current?.getTime() ?? 0, now.getTime()) + days * 86400000,
   );
 }
 export function accessStatus(expiresAt: Date | null, now = new Date()) {
@@ -90,14 +90,14 @@ export class EnrollmentsRepository {
       })
     ).map((e) => e.courseId);
   }
-  async extend(id: string, tx: Transaction) {
+  async extend(id: string, tx: Transaction, days: number) {
     const enrollment = await this.find(id, tx);
     const now = new Date();
     return tx.enrollment.update({
       where: { id },
       data: {
         accessStartsAt: enrollment.accessStartsAt ?? now,
-        accessExpiresAt: extendAccess(enrollment.accessExpiresAt, now),
+        accessExpiresAt: extendAccess(enrollment.accessExpiresAt, now, days),
       },
     });
   }
@@ -145,8 +145,8 @@ export class EnrollmentsService {
   activeCourseIds(studentId: string) {
     return this.repo.activeCourseIds(studentId);
   }
-  extend(id: string, tx: Transaction) {
-    return this.repo.extend(id, tx);
+  extend(id: string, tx: Transaction, days: number) {
+    return this.repo.extend(id, tx, days);
   }
 }
 @ApiTags("enrollments")

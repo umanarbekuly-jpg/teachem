@@ -47,6 +47,7 @@ export class PaymentsService {
       const p = await this.repo.create(tx, {
         enrollmentId,
         amountMinor: c.monthlyPriceMinor,
+        durationDays: c.durationDays,
         commissionBps: settings.commissionBps,
         idempotencyKey: key,
       });
@@ -130,10 +131,11 @@ export class PaymentsService {
       id: string;
       enrollmentId: string;
       amountMinor: number;
+      durationDays: number;
       commissionBps: number;
     },
   ) {
-    const e = await this.enrollments.extend(p.enrollmentId, tx);
+    const e = await this.enrollments.extend(p.enrollmentId, tx, p.durationDays);
     const course = await this.courses.get(e.courseId);
     await this.payouts.create(
       tx,

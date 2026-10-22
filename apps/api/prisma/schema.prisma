@@ -26,6 +26,7 @@ enum PayoutStatus {
   paid
 }
 enum FilePurpose {
+  course_cover
   avatar
   material
   receipt
@@ -122,7 +123,11 @@ model Course {
   title String
   description String
   subject String
-  level String
+  level String @default("")
+  durationDays Int @default(30)
+  tags String[] @default([])
+  coverAssetId String? @db.Uuid
+  cover FileAsset? @relation(fields: [coverAssetId], references: [id], onDelete: Restrict)
   monthlyPriceMinor Int
   currency String @default("KZT") @db.Char(3)
   status CourseStatus @default(draft)
@@ -151,6 +156,7 @@ model FileAsset {
   updatedAt DateTime @updatedAt @db.Timestamptz(3)
   userAvatars User[] @relation("UserAvatar")
   photoFor TutorProfile?
+  courseCovers Course[]
   materials Material[]
   receipts Payment[]
   @@index([ownerId])
@@ -191,6 +197,7 @@ model Payment {
   enrollmentId String @db.Uuid
   enrollment Enrollment @relation(fields: [enrollmentId], references: [id])
   amountMinor Int
+  durationDays Int @default(30)
   currency String @default("KZT") @db.Char(3)
   commissionBps Int
   provider String @default("manual")

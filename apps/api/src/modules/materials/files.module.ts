@@ -12,6 +12,8 @@ import {
 } from "@nestjs/common";
 import { ApiProperty, ApiTags } from "@nestjs/swagger";
 import { IsIn, IsInt, IsString, Length, Max, Min } from "class-validator";
+import sharp from "sharp";
+import { COVER_MAX_BYTES } from "@tutor/shared";
 import { randomUUID } from "crypto";
 import { extname } from "path";
 import { unzipSync } from "fflate";
@@ -35,9 +37,9 @@ const types: Record<string, string> = {
   ".webp": "image/webp",
 };
 export class UploadDto {
-  @ApiProperty({ enum: ["avatar", "material", "receipt"] })
-  @IsIn(["avatar", "material", "receipt"])
-  purpose!: "avatar" | "material" | "receipt";
+  @ApiProperty({ enum: ["avatar", "material", "receipt", "course_cover"] })
+  @IsIn(["avatar", "material", "receipt", "course_cover"])
+  purpose!: "avatar" | "material" | "receipt" | "course_cover";
   @ApiProperty() @IsString() @Length(1, 200) originalName!: string;
   @ApiProperty() @IsString() @Length(1, 150) mimeType!: string;
   @ApiProperty({ maximum: MAX }) @IsInt() @Min(1) @Max(MAX) sizeBytes!: number;
@@ -129,10 +131,13 @@ export class FilesService {
     private enrollments: EnrollmentsService,
   ) {}
   async upload(a: Actor, dto: UploadDto) {
+    if (dto.purpose === "course_cover" && dto.sizeBytes > COVER_MAX_BYTES)
+      throw new BadRequestException("Обложка должна быть не больше 5 МБ");
     const ext = extname(dto.originalName).toLowerCase();
     if (
       types[ext] !== dto.mimeType ||
-      (dto.purpose === "avatar" && !dto.mimeType.startsWith("image/")) ||
+      (["avatar", "course_cover"].includes(dto.purpose) &&
+        !dto.mimeType.startsWith("image/")) ||
       (dto.purpose === "receipt" &&
         ![".pdf", ".png", ".jpg", ".jpeg", ".webp"].includes(ext))
     )
@@ -140,7 +145,10 @@ export class FilesService {
     if (
       dto.purpose !== "receipt" &&
       a.role !== "tutor" &&
-      !(a.role === "SUPERADMIN" && dto.purpose === "avatar")
+      !(
+        a.role === "SUPERADMIN" &&
+        ["avatar", "course_cover"].includes(dto.purpose)
+      )
     )
       throw new ForbiddenException("Загрузка доступна тьютору");
     const file = await this.repo.create(
@@ -164,7 +172,11 @@ export class FilesService {
     if (f.status !== "pending" || !f.expiresAt || f.expiresAt <= new Date())
       throw new BadRequestException("Загрузка истекла");
     const h = await this.storage.inspect(f.objectKey);
-    if (h.size !== f.sizeBytes || h.size > MAX || h.mime !== f.mimeType) {
+    if (
+      h.size !== f.sizeBytes ||
+      h.size > (f.purpose === "course_cover" ? COVER_MAX_BYTES : MAX) ||
+      h.mime !== f.mimeType
+    ) {
       await this.repo.reject(id);
       throw new BadRequestException("Размер или тип файла не совпадает");
     }
@@ -178,6 +190,26 @@ export class FilesService {
         "Содержимое файла не соответствует формату",
       );
     }
+    if (f.purpose === "course_cover") {
+      try {
+        const image = sharp(body, {
+          failOn: "warning",
+          limitInputPixels: 40000000,
+        });
+        const info = await image.metadata();
+        if (
+          !(info.format && ["jpeg", "png", "webp"].includes(info.format)) ||
+          "image/" + info.format !== f.mimeType
+        )
+          throw new Error("Invalid image");
+        await image.stats(); // Decode the pixels too: a forged header is insufficient.
+      } catch {
+        await this.repo.reject(id);
+        throw new BadRequestException(
+          "Не удалось прочитать изображение JPEG, PNG или WebP (до 40 млн пикселей)",
+        );
+      }
+    }
     // Write validated bytes under a new key: an unexpired upload URL cannot overwrite a ready object.
     const key = `ready/${randomUUID()}${extname(f.originalName).toLowerCase()}`;
     await this.storage.put(key, body, f.mimeType);
@@ -188,7 +220,7 @@ export class FilesService {
   async assertOwned(
     id: string,
     ownerId: string,
-    purpose: "avatar" | "material" | "receipt",
+    purpose: "avatar" | "material" | "receipt" | "course_cover",
   ) {
     const f = await this.repo.get(id);
     if (f.ownerId !== ownerId || f.status !== "ready" || f.purpose !== purpose)

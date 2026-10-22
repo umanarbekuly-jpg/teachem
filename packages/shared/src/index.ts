@@ -27,3 +27,5 @@ export const LEVELS = [
 export const CURRENCY = "KZT" as const;
 export const MAX_FILE_BYTES = 20 * 1024 * 1024;
 export const ACCESS_DAYS = 30;
+
+export * from "./course";

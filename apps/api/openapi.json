@@ -464,6 +464,14 @@
             }
           },
           {
+            "name": "tag",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "subject",
             "required": false,
             "in": "query",
@@ -594,6 +602,128 @@
         ]
       }
     },
+    "/api/v1/admin/courses": {
+      "get": {
+        "operationId": "Courses_all",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "tag",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "subject",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "priceFromMinor",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "priceToMinor",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Успешный ответ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/CourseView"
+                      }
+                    },
+                    "total": {
+                      "type": "integer"
+                    },
+                    "page": {
+                      "type": "integer"
+                    },
+                    "pageSize": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "page",
+                    "pageSize"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Ошибка запроса"
+          },
+          "401": {
+            "description": "Ошибка запроса"
+          },
+          "403": {
+            "description": "Ошибка запроса"
+          },
+          "404": {
+            "description": "Ошибка запроса"
+          },
+          "409": {
+            "description": "Ошибка запроса"
+          },
+          "429": {
+            "description": "Ошибка запроса"
+          }
+        },
+        "tags": [
+          "courses"
+        ]
+      }
+    },
     "/api/v1/courses": {
       "get": {
         "operationId": "Courses_list",
@@ -619,6 +749,14 @@
           },
           {
             "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "tag",
             "required": false,
             "in": "query",
             "schema": {
@@ -787,6 +925,14 @@
             }
           },
           {
+            "name": "tag",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "subject",
             "required": false,
             "in": "query",
@@ -841,6 +987,93 @@
                     "page",
                     "pageSize"
                   ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Ошибка запроса"
+          },
+          "401": {
+            "description": "Ошибка запроса"
+          },
+          "403": {
+            "description": "Ошибка запроса"
+          },
+          "404": {
+            "description": "Ошибка запроса"
+          },
+          "409": {
+            "description": "Ошибка запроса"
+          },
+          "429": {
+            "description": "Ошибка запроса"
+          }
+        },
+        "tags": [
+          "courses"
+        ]
+      }
+    },
+    "/api/v1/courses/subjects": {
+      "get": {
+        "operationId": "Courses_subjects",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Успешный ответ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubjectOptions"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Ошибка запроса"
+          },
+          "401": {
+            "description": "Ошибка запроса"
+          },
+          "403": {
+            "description": "Ошибка запроса"
+          },
+          "404": {
+            "description": "Ошибка запроса"
+          },
+          "409": {
+            "description": "Ошибка запроса"
+          },
+          "429": {
+            "description": "Ошибка запроса"
+          }
+        },
+        "tags": [
+          "courses"
+        ]
+      }
+    },
+    "/api/v1/courses/{id}/edit": {
+      "get": {
+        "operationId": "Courses_edit",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Успешный ответ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CourseView"
                 }
               }
             }
@@ -4570,6 +4803,22 @@
           "level": {
             "type": "string"
           },
+          "durationDays": {
+            "type": "number",
+            "default": 30,
+            "minimum": 1
+          },
+          "tags": {
+            "maxItems": 3,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "coverAssetId": {
+            "type": "string",
+            "nullable": true
+          },
           "monthlyPriceMinor": {
             "type": "number",
             "description": "Цена в тиынах",
@@ -4580,7 +4829,6 @@
           "title",
           "description",
           "subject",
-          "level",
           "monthlyPriceMinor"
         ]
       },
@@ -4599,6 +4847,22 @@
           "level": {
             "type": "string"
           },
+          "durationDays": {
+            "type": "number",
+            "default": 30,
+            "minimum": 1
+          },
+          "tags": {
+            "maxItems": 3,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "coverAssetId": {
+            "type": "string",
+            "nullable": true
+          },
           "monthlyPriceMinor": {
             "type": "number",
             "description": "Цена в тиынах",
@@ -4614,7 +4878,8 @@
             "enum": [
               "avatar",
               "material",
-              "receipt"
+              "receipt",
+              "course_cover"
             ]
           },
           "originalName": {
@@ -5016,6 +5281,20 @@
           "confirmPassword"
         ]
       },
+      "SubjectOptions": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
       "PublicUser": {
         "type": "object",
         "properties": {
@@ -5052,6 +5331,23 @@
           "level": {
             "type": "string"
           },
+          "durationDays": {
+            "type": "integer"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "coverAssetId": {
+            "type": "string",
+            "nullable": true
+          },
+          "coverUrl": {
+            "type": "string",
+            "nullable": true
+          },
           "monthlyPriceMinor": {
             "type": "integer"
           },
@@ -5077,6 +5373,10 @@
           "description",
           "subject",
           "level",
+          "durationDays",
+          "tags",
+          "coverAssetId",
+          "coverUrl",
           "monthlyPriceMinor",
           "currency",
           "status",
@@ -5214,6 +5514,9 @@
           "amountMinor": {
             "type": "integer"
           },
+          "durationDays": {
+            "type": "integer"
+          },
           "currency": {
             "type": "string"
           },
@@ -5272,6 +5575,7 @@
           "id",
           "enrollmentId",
           "amountMinor",
+          "durationDays",
           "currency",
           "commissionBps",
           "status",
