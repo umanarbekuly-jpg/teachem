@@ -18,11 +18,6 @@ export function PasswordChange() {
     queryFn: () => result(api.GET("/api/v1/auth/me")),
     retry: false,
   });
-  const form = useForm<{
-    currentPassword: string;
-    newPassword: string;
-    confirmPassword: string;
-  }>();
   if (me.isLoading) return <Loading />;
   if (!me.data)
     return (
@@ -49,67 +44,8 @@ export function PasswordChange() {
           ? "Перед продолжением замените назначенный пароль своим."
           : "Подтвердите текущий пароль, чтобы задать новый."}
       </p>
-      <form
-        className="form-stack panel"
-        onSubmit={form.handleSubmit(async (values) => {
-          try {
-            setError(undefined);
-            await accountRequest("auth/change-password", "POST", values);
-            cache.clear();
-            router.replace("/login?passwordChanged=1");
-          } catch (e) {
-            setError(e);
-          }
-        })}
-      >
-        <label className="field">
-          Текущий или назначенный пароль
-          <input
-            type="password"
-            autoComplete="current-password"
-            {...form.register("currentPassword", {
-              required: "Введите текущий пароль",
-            })}
-          />
-          <span className="field-error">
-            {form.formState.errors.currentPassword?.message}
-          </span>
-        </label>
-        <label className="field">
-          Новый пароль
-          <input
-            type="password"
-            autoComplete="new-password"
-            {...form.register("newPassword", {
-              required: "Введите новый пароль",
-              minLength: { value: 12, message: "Не менее 12 символов" },
-              validate: (v) =>
-                new TextEncoder().encode(v).length <= 72 || "Не более 72 байт",
-            })}
-          />
-          <span className="field-error">
-            {form.formState.errors.newPassword?.message}
-          </span>
-        </label>
-        <label className="field">
-          Повторите новый пароль
-          <input
-            type="password"
-            autoComplete="new-password"
-            {...form.register("confirmPassword", {
-              validate: (v) =>
-                v === form.getValues("newPassword") || "Пароли не совпадают",
-            })}
-          />
-          <span className="field-error">
-            {form.formState.errors.confirmPassword?.message}
-          </span>
-        </label>
-        <ErrorBox error={error} />
-        <Button disabled={form.formState.isSubmitting}>
-          Сохранить и войти заново
-        </Button>
-      </form>
+      <PasswordChangeForm />
+      <ErrorBox error={error} />
       <div className="actions">
         {!me.data.mustChangePassword && (
           <Link href={accountPath(me.data)}>В кабинет</Link>
@@ -119,5 +55,79 @@ export function PasswordChange() {
         </Button>
       </div>
     </main>
+  );
+}
+
+export function PasswordChangeForm() {
+  const router = useRouter(),
+    cache = useQueryClient();
+  const [error, setError] = useState<unknown>();
+  const form = useForm<{
+    currentPassword: string;
+    newPassword: string;
+    confirmPassword: string;
+  }>();
+  return (
+    <form
+      className="form-stack panel"
+      onSubmit={form.handleSubmit(async (values) => {
+        try {
+          setError(undefined);
+          await accountRequest("auth/change-password", "POST", values);
+          cache.clear();
+          router.replace("/login?passwordChanged=1");
+        } catch (e) {
+          setError(e);
+        }
+      })}
+    >
+      <label className="field">
+        Текущий или назначенный пароль
+        <input
+          type="password"
+          autoComplete="current-password"
+          {...form.register("currentPassword", {
+            required: "Введите текущий пароль",
+          })}
+        />
+        <span className="field-error">
+          {form.formState.errors.currentPassword?.message}
+        </span>
+      </label>
+      <label className="field">
+        Новый пароль
+        <input
+          type="password"
+          autoComplete="new-password"
+          {...form.register("newPassword", {
+            required: "Введите новый пароль",
+            minLength: { value: 12, message: "Не менее 12 символов" },
+            validate: (v) =>
+              new TextEncoder().encode(v).length <= 72 || "Не более 72 байт",
+          })}
+        />
+        <span className="field-error">
+          {form.formState.errors.newPassword?.message}
+        </span>
+      </label>
+      <label className="field">
+        Повторите новый пароль
+        <input
+          type="password"
+          autoComplete="new-password"
+          {...form.register("confirmPassword", {
+            validate: (v) =>
+              v === form.getValues("newPassword") || "Пароли не совпадают",
+          })}
+        />
+        <span className="field-error">
+          {form.formState.errors.confirmPassword?.message}
+        </span>
+      </label>
+      <ErrorBox error={error} />
+      <Button disabled={form.formState.isSubmitting}>
+        Сохранить и войти заново
+      </Button>
+    </form>
   );
 }

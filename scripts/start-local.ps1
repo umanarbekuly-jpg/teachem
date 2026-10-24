@@ -21,6 +21,7 @@ $ready = Invoke-WebRequest -Uri 'http://localhost:8080/health/ready' -UseBasicPa
 if ($ready.StatusCode -ne 200) { throw 'Сервер ещё не готов.' }
 Write-Host 'TeachEm: http://localhost:8080/login'
 Write-Host 'Панель пользователей: http://localhost:8080/admin/users'
+Write-Host 'Мой профиль: нажмите на блок аккаунта в меню кабинета (доступно и на телефоне).'
 Write-Host 'Создать курс: http://localhost:8080/tutor/courses/new'
 Write-Host 'Все курсы для суперадмина: http://localhost:8080/admin/courses'
 Start-Process 'http://localhost:8080/login' -WindowStyle Hidden

@@ -16,7 +16,7 @@ export function ProfilePanel() {
   const [photo, setPhoto] = useState<File>();
   return (
     <>
-      <h1>Мой профиль</h1>
+      <h2>Профессиональный профиль</h2>
       <p className="subheading">
         Помогите ученикам узнать вас до первого занятия.
       </p>

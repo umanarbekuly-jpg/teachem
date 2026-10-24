@@ -1041,6 +1041,7 @@ export interface components {
             role: "student" | "tutor";
         };
         UserView: {
+            surname: string;
             mustChangePassword: boolean;
             id: string;
             name: string;
@@ -1060,6 +1061,9 @@ export interface components {
         };
         UpdateUserDto: {
             name: string;
+            surname?: string;
+            email?: string;
+            currentPassword?: string;
         };
         ProfileDto: {
             bio?: string;

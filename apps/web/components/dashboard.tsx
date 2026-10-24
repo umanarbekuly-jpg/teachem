@@ -28,7 +28,8 @@ import {
 import { Button } from "./ui/button";
 import { date, money, statusLabel } from "@/lib/utils";
 import { CourseWorkspace, CourseEditor, PaymentScreen } from "./learning";
-import { AdminPanel, ProfilePanel } from "./management";
+import { AccountProfile } from "./account-profile";
+import { AdminPanel } from "./management";
 import { TestRunner } from "./tests";
 const icons = {
   courses: BookOpen,
@@ -100,7 +101,8 @@ export function Dashboard({
   if (!me.data || accountPath(me.data) !== `/${role}`) return <Loading />;
   const user = me.data;
   let content: React.ReactNode;
-  if (role === "admin" && current === "courses" && section[1])
+  if (current === "profile") content = <AccountProfile user={user} />;
+  else if (role === "admin" && current === "courses" && section[1])
     content = <ManagedCourseEditor id={section[1]} />;
   else if (role === "admin" && current === "courses")
     content = <AdminCourses />;
@@ -119,7 +121,6 @@ export function Dashboard({
   else if (current === "results") content = <Results />;
   else if (current === "students") content = <Students />;
   else if (current === "finances") content = <Finances />;
-  else if (current === "profile") content = <ProfilePanel />;
   else content = <Empty title="Раздел не найден" />;
   return (
     <div className="dashboard">
@@ -140,17 +141,27 @@ export function Dashboard({
             );
           })}
         </nav>
-        <div className="sidebar-user">
-          <span className="avatar">{user.name.slice(0, 1)}</span>
-          <strong>{user.name}</strong>
+        <Link
+          className="sidebar-user"
+          href={`/${role}/profile`}
+          aria-label="Мой профиль"
+          aria-current={current === "profile" ? "page" : undefined}
+        >
+          <span className="avatar">
+            {(
+              user.name.slice(0, 1) + (user.surname?.slice(0, 1) ?? "")
+            ).toUpperCase()}
+          </span>
+          <strong>
+            {user.name} {user.surname}
+          </strong>
           <small>{statusLabel[role]}</small>
-        </div>
+        </Link>
       </aside>
       <div className="workspace">
         <header className="workspace-header">
           <span>Личный кабинет · {statusLabel[role]}</span>
           <div className="actions">
-            <Link href="/change-password">Сменить пароль</Link>
             <Link href="/catalog">Каталог ↗</Link>
             <button
               aria-label="Выйти"

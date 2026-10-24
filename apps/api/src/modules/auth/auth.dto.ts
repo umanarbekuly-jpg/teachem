@@ -42,6 +42,7 @@ export class RegisterDto extends LoginDto {
   role!: "student" | "tutor";
 }
 export class UserView {
+  @ApiProperty() surname!: string;
   @ApiProperty() mustChangePassword!: boolean;
   @ApiProperty() id!: string;
   @ApiProperty() name!: string;
