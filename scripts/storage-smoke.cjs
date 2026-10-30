@@ -1,6 +1,10 @@
 const assert = require("node:assert/strict");
 const { randomUUID } = require("node:crypto");
-const base = "http://localhost:8080/api/v1";
+const testAPI = process.env.TEACHEM_TEST_API_URL;
+if (testAPI !== "http://localhost:4102") {
+  throw new Error("Start an isolated test API on port 4102 and set TEACHEM_TEST_API_URL; never use the working database.");
+}
+const base = testAPI + "/api/v1";
 function client() {
   let cookies = new Map(),
     csrf;

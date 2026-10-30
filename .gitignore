@@ -10,3 +10,7 @@ coverage/
 *.log
 playwright-report/
 test-results/
+
+apps/api-go/server
+apps/api-go/server.exe
+apps/api-go/bin/

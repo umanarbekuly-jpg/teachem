@@ -1,7 +1,9 @@
 FROM node:22-bookworm-slim AS build
 RUN npm install -g pnpm@10.17.1
 WORKDIR /app
-COPY . .
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.base.json ./
+COPY apps/web ./apps/web
+COPY packages ./packages
 RUN pnpm install --frozen-lockfile && pnpm --filter @tutor/shared build && pnpm --filter @tutor/web build
 FROM node:22-bookworm-slim
 WORKDIR /app

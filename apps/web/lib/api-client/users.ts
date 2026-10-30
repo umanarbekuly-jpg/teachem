@@ -1,3 +1,4 @@
+import { apiURL } from "./config";
 import { secureFetch } from "./index";
 export type ManagedUser = {
   id: string;
@@ -36,7 +37,7 @@ export async function accountRequest<T>(
   body?: unknown,
 ): Promise<T> {
   const response = await secureFetch(
-    new Request(new URL("/api/v1/" + path, window.location.origin), {
+    new Request(apiURL(path), {
       method,
       headers: { "Content-Type": "application/json" },
       ...(body !== undefined ? { body: JSON.stringify(body) } : {}),

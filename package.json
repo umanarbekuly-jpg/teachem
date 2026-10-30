@@ -7,16 +7,18 @@
     "node": ">=22"
   },
   "scripts": {
-    "dev": "pnpm --parallel --filter @tutor/api --filter @tutor/web dev",
-    "build": "pnpm --filter @tutor/shared build && pnpm --filter @tutor/api build && pnpm --filter @tutor/web build",
+    "dev": "pnpm --filter @tutor/shared build && pnpm --filter @tutor/web dev",
+    "dev:api": "go -C apps/api-go run ./cmd/server",
+    "build": "pnpm build:api && pnpm build:web",
+    "build:api": "go -C apps/api-go build ./cmd/server",
+    "build:web": "pnpm --filter @tutor/shared build && pnpm --filter @tutor/web build",
+    "lint": "eslint apps/web packages --max-warnings=0",
     "typecheck": "pnpm --filter @tutor/shared build && pnpm -r typecheck",
-    "lint": "eslint apps packages --max-warnings=0",
-    "test": "pnpm --filter @tutor/api test",
-    "test:e2e": "pnpm --filter @tutor/api test:e2e",
-    "db:generate": "pnpm --filter @tutor/api db:generate",
-    "db:migrate": "pnpm --filter @tutor/api db:migrate",
-    "db:seed": "pnpm --filter @tutor/api db:seed",
-    "api:generate": "pnpm --filter @tutor/api openapi && pnpm --filter @tutor/web api:generate"
+    "test": "go -C apps/api-go test -p 1 ./...",
+    "test:e2e": "node scripts/test-go.cjs",
+    "db:migrate": "go -C apps/api-go run ./cmd/server migrate",
+    "db:seed": "go -C apps/api-go run ./cmd/server seed",
+    "api:generate": "pnpm --filter @tutor/web api:generate"
   },
   "devDependencies": {
     "eslint": "^9.36.0",

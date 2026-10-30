@@ -1,6 +1,7 @@
 name: tutor-platform
 x-api-env: &api-env
   NODE_ENV: development
+  TRUST_PROXY: 'true'
   PORT: 4000
   DATABASE_URL: postgresql://tutor:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@postgres:5432/tutor?schema=public
   JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:?Set JWT_ACCESS_SECRET}
@@ -52,28 +53,28 @@ services:
         mc anonymous set none local/tutor-private
         mc ilm rule add --id pending-cleanup --prefix pending/ --expire-days 1 local/tutor-private || true
   migrate:
-    build: { context: ., dockerfile: apps/api/Dockerfile }
+    build: { context: ./apps/api-go, dockerfile: Dockerfile }
     environment: *api-env
-    command: pnpm --filter @tutor/api db:migrate
+    command: [migrate]
     depends_on:
       postgres: { condition: service_healthy }
   seed:
-    build: { context: ., dockerfile: apps/api/Dockerfile }
+    build: { context: ./apps/api-go, dockerfile: Dockerfile }
     environment:
       <<: *api-env
       ADMIN_EMAIL: ${ADMIN_EMAIL:?Set ADMIN_EMAIL}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Set ADMIN_PASSWORD}
-    command: pnpm --filter @tutor/api db:seed
+    command: [seed]
     depends_on:
       migrate: { condition: service_completed_successfully }
   api:
-    build: { context: ., dockerfile: apps/api/Dockerfile }
+    build: { context: ./apps/api-go, dockerfile: Dockerfile }
     environment: *api-env
     depends_on:
       seed: { condition: service_completed_successfully }
       storage-init: { condition: service_completed_successfully }
     healthcheck:
-      test: ['CMD', 'node', '-e', "fetch('http://localhost:4000/health/ready').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      test: ['CMD', '/server', 'healthcheck']
       interval: 10s
       timeout: 5s
       retries: 20

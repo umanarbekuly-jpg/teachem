@@ -1,10 +1,11 @@
+import { apiOrigin, apiURL } from "./config";
 import createClient from "openapi-fetch";
 import type { paths } from "./schema";
 let csrf: string | undefined;
 let refreshPromise: Promise<boolean> | undefined;
 async function csrfToken() {
   if (!csrf) {
-    const response = await fetch("/api/v1/auth/csrf", {
+    const response = await fetch(apiURL("auth/csrf"), {
       credentials: "include",
     });
     if (!response.ok) throw new Error("Не удалось подключиться к серверу");
@@ -24,7 +25,7 @@ export async function secureFetch(request: Request) {
     refreshPromise ??= (async () => {
       try {
         return (
-          await fetch("/api/v1/auth/refresh", {
+          await fetch(apiURL("auth/refresh"), {
             method: "POST",
             credentials: "include",
             headers: { "X-CSRF-Token": await csrfToken() },
@@ -43,10 +44,7 @@ export async function secureFetch(request: Request) {
   return response;
 }
 export const api = createClient<paths>({
-  baseUrl:
-    typeof window === "undefined"
-      ? "http://localhost:8080"
-      : window.location.origin,
+  baseUrl: apiOrigin(),
   fetch: secureFetch,
 });
 export async function result<T>(

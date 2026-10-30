@@ -1,13 +1,9 @@
 packages:
-  - apps/*
+  - apps/web
   - packages/*
 injectWorkspacePackages: true
 syncInjectedDepsAfterScripts:
   - build
 onlyBuiltDependencies:
-  - "@nestjs/core"
-  - "@prisma/client"
-  - "@prisma/engines"
-  - prisma
   - esbuild
   - sharp

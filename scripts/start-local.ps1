@@ -20,6 +20,7 @@ if ($LASTEXITCODE -ne 0) { throw 'Запуск не завершён. Прове
 $ready = Invoke-WebRequest -Uri 'http://localhost:8080/health/ready' -UseBasicParsing
 if ($ready.StatusCode -ne 200) { throw 'Сервер ещё не готов.' }
 Write-Host 'TeachEm: http://localhost:8080/login'
+Write-Host 'Сервер: Go; интерфейс: Next.js. Данные сохраняются между запусками.'
 Write-Host 'Панель пользователей: http://localhost:8080/admin/users'
 Write-Host 'Мой профиль: нажмите на блок аккаунта в меню кабинета (доступно и на телефоне).'
 Write-Host 'Создать курс: http://localhost:8080/tutor/courses/new'
